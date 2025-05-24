@@ -4,10 +4,12 @@ import { useState } from 'react';
 
 import viteLogo from '/vite.svg';
 import reactLogo from '@/assets/react.svg';
+import { Modal } from '@/Modal';
 import { Button } from '@/shared/components/ui/button';
 
 export function App() {
   const [count, setCount] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gray-100 p-4">
@@ -27,6 +29,13 @@ export function App() {
           />
         </a>
       </div>
+      <Button
+        className="my-4 rounded-lg bg-green-500 font-bold"
+        onClick={() => setIsModalOpen(true)}
+      >
+        Modal 열기
+      </Button>
+      {isModalOpen && <Modal onClose={() => setIsModalOpen(false)} />}
       <h1 className="mb-4 text-4xl font-bold text-gray-800">Vite + React</h1>
       <h1 className="mb-2 text-3xl font-bold text-blue-600 underline">
         Hello tailwindcss!
