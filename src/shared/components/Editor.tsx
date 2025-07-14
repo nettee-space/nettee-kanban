@@ -15,12 +15,12 @@ import {
 } from '@blocknote/react';
 import { DefaultReactSuggestionItem } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/shadcn';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 
 import {
-  markdownContent,
+  // markdownContent,
   parseMarkdownToBlocks,
-} from '@/parseMarkdownToBlocks';
+} from '@/shared/lib/parseMarkdownToBlocks';
 
 type SuggestionItem = DefaultReactSuggestionItem & {
   key: (typeof SELECTED_SLASH_MENU_ITEMS)[number];
@@ -48,10 +48,16 @@ const getCustomSlashMenuItems = (
   );
 };
 
-export function Editor() {
+export function Editor({
+  content,
+  setMarkdown,
+}: {
+  content: string | undefined;
+  setMarkdown: (markdown: string) => void;
+}) {
   const locale = ko;
 
-  const [_markdown, setMarkdown] = useState<string>('');
+  // const [_markdown, setMarkdown] = useState<string>('');
 
   const editor = useCreateBlockNote({
     dictionary: {
@@ -61,7 +67,7 @@ export function Editor() {
         emptyDocument: '내용을 입력하거나 /로 명령을 입력해주세요',
       },
     },
-    initialContent: parseMarkdownToBlocks(markdownContent),
+    initialContent: parseMarkdownToBlocks(content ?? ``),
   });
 
   const onChange = useCallback(async () => {
@@ -69,7 +75,7 @@ export function Editor() {
     const markdownOutput = await editor.blocksToMarkdownLossy(editor.document);
     setMarkdown(markdownOutput);
     // console.log(markdownOutput); // markdown 결과물 확인용
-  }, [editor]);
+  }, [editor, setMarkdown]);
 
   useEffect(() => {
     if (editor.document) {
@@ -85,7 +91,7 @@ export function Editor() {
       slashMenu={false}
       sideMenu={false}
       onChange={onChange}
-      className="min-h-0 flex-1 overflow-auto text-sm leading-tight font-medium [&_.bn-editor]:!bg-neutral-100 [&_.bn-editor]:!px-0 [&_.bn-editor]:!text-neutral-400 [&.bn-container]:rounded-lg [&.bn-container]:bg-neutral-100 [&.bn-container]:p-3"
+      className="h-full min-h-0 flex-1 overflow-auto text-sm leading-tight font-medium [&_.bn-editor]:!bg-neutral-100 [&_.bn-editor]:!px-0 [&_.bn-editor]:!text-neutral-400 [&.bn-container]:rounded-lg [&.bn-container]:bg-neutral-100 [&.bn-container]:p-3"
     >
       <FormattingToolbarController
         formattingToolbar={() => (

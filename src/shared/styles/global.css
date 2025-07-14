@@ -118,3 +118,46 @@
     @apply bg-background text-foreground;
   }
 }
+
+@font-face {
+  font-family: 'PretendardVariable';
+  src: url('/PretendardVariable.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
+
+html {
+  font-size: 62.5%;
+  font-family: 'PretendardVariable', sans-serif;
+  scrollbar-width: thin;
+
+  div {
+    scrollbar-width: thin;
+  }
+
+  li {
+    list-style-type: none;
+  }
+}
+
+#root {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-size: 1.6rem;
+  letter-spacing: -5%;
+  line-height: 140%;
+}
+
+body {
+  /* font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family:
+    source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
