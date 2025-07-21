@@ -24,5 +24,6 @@ dist-ssr
 *.sw?
 
 # ignore .env
-.env
-.env.*
+## 완성 전 까지 제한 해제합니다.
+## .env
+## .env.*
