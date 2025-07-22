@@ -16,13 +16,13 @@ import { Editor } from '@/shared/components/Editor';
 import { Calendar } from '@/shared/components/ui/calendar';
 import { octokit } from '@/shared/lib/git-octokit';
 
-import { netteeRepo } from '../constants/kanban';
+import { netteeRepo } from '../../constants/nettee';
 import {
   GroupedIssues,
   IssueData,
   KanbanProgress,
   UpsertIssuePayload,
-} from '../types/issues';
+} from '../../types/issues';
 
 type SetState<T> = Dispatch<SetStateAction<T>>;
 
@@ -113,7 +113,7 @@ export function KanbanModal({ item, setModal, setIssues }: ModalProps) {
   const upsertTable = async (payload: UpsertIssuePayload) => {
     try {
       const response = await fetch(
-        'https://mvthhkegwhdismekprnz.supabase.co/functions/v1/nettee-function',
+        `${import.meta.env.VITE_PROJECT_URL}/functions/v1/nettee-function`,
         {
           method: 'POST',
           headers: {
