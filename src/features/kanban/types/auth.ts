@@ -17,6 +17,13 @@ export interface AuthState {
   user: User | null;
   session: any; // Supabase Session 타입
   isLoading: boolean;
+
+  // Computed properties (getters) - boolean 헬퍼들
+  readonly isGuest: boolean;
+  readonly isAuthenticated: boolean;
+  readonly isGitHubUser: boolean;
+  readonly isUnauthenticated: boolean;
+  readonly isLoadingAuth: boolean;
 }
 
 export interface AuthActions {

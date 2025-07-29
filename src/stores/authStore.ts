@@ -13,6 +13,27 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       session: null,
       isLoading: false,
 
+      // Computed properties (getters) - boolean 헬퍼들
+      get isGuest() {
+        return get().status === 'guest';
+      },
+
+      get isAuthenticated() {
+        return get().status === 'authenticated';
+      },
+
+      get isGitHubUser() {
+        return get().status === 'authenticated' && get().session !== null;
+      },
+
+      get isUnauthenticated() {
+        return get().status === 'unauthenticated';
+      },
+
+      get isLoadingAuth() {
+        return get().status === 'loading' || get().isLoading;
+      },
+
       // Actions
       setStatus: (status) => set({ status }),
 
@@ -57,7 +78,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         try {
           set({ isLoading: true });
 
-          if (get().status === 'guest') {
+          if (get().isGuest) {
             // 게스트 로그아웃
             set({
               status: 'unauthenticated',
