@@ -1,86 +1,80 @@
 // hooks/useFilters.ts
 import { useState } from 'react';
 
+import { E_Team, projectList } from '../constants/kanban';
+
 interface FilterState {
   selectedProject: string[];
   selectedTeam: string[];
   selectedAssignee: string[];
 }
 
+const allProjects = projectList.filter((p) => p !== 'All');
+const allTeams = Object.values(E_Team).filter((t) => t !== 'All');
+
 export const useFilters = () => {
   const [filters, setFilters] = useState<FilterState>({
-    selectedProject: [],
-    selectedTeam: [],
+    selectedProject: [''],
+    selectedTeam: [''],
     selectedAssignee: [],
   });
 
-  const updateProjectFilter = (projects: string[]) => {
-    setFilters((prev) => ({ ...prev, selectedProject: projects }));
-  };
+  const isAllSelected = (list: string[], allItems: string[]) =>
+    allItems.every((item) => list.includes(item));
 
-  const updateTeamFilter = (teams: string[]) => {
-    setFilters((prev) => ({ ...prev, selectedTeam: teams }));
-  };
-
-  const updateAssigneeFilter = (assignees: string[]) => {
-    setFilters((prev) => ({ ...prev, selectedAssignee: assignees }));
-  };
-
-  const handleProjectToggle = (proj: string) => {
-    if (proj === 'All') {
-      updateProjectFilter(['All']);
-      return;
-    }
-
+  const updateProjectFilter = (proj: string) => {
     setFilters((prev) => {
-      const current = prev.selectedProject;
-      const activeProject = current.includes(proj)
-        ? current.filter((p) => p !== proj)
-        : [...current.filter((p) => p !== 'All'), proj];
+      let updated = [...prev.selectedProject];
 
-      const newProjects = activeProject.length === 0 ? ['All'] : activeProject;
+      if (proj === 'All') {
+        updated = ['All', ...allProjects];
+      } else if (updated.includes(proj)) {
+        updated = updated.filter((p) => p !== proj && p !== 'All');
+      } else {
+        updated = [...updated, proj].filter((p) => p !== 'All');
+      }
 
-      return {
-        ...prev,
-        selectedProject: newProjects,
-      };
+      if (isAllSelected(updated, allProjects)) {
+        updated = ['All', ...allProjects];
+      }
+
+      return { ...prev, selectedProject: updated };
     });
   };
 
-  const handleTeamToggle = (team: string) => {
-    if (team === 'All') {
-      updateTeamFilter(['All']);
-      return;
-    }
-
+  const updateTeamFilter = (team: string) => {
     setFilters((prev) => {
-      const current = prev.selectedTeam;
-      const activeTeam = current.includes(team)
-        ? current.filter((t) => t !== team)
-        : [...current.filter((t) => t !== 'All'), team];
+      let updated = [...prev.selectedTeam];
 
-      const newTeams = activeTeam.length === 0 ? ['All'] : activeTeam;
+      if (team === 'All') {
+        updated = ['All', ...allTeams];
+      } else if (updated.includes(team)) {
+        updated = updated.filter((t) => t !== team && t !== 'All');
+      } else {
+        updated = [...updated, team].filter((t) => t !== 'All');
+      }
 
-      return {
-        ...prev,
-        selectedTeam: newTeams,
-      };
+      if (isAllSelected(updated, allTeams)) {
+        updated = ['All', ...allTeams];
+      }
+
+      return { ...prev, selectedTeam: updated };
     });
   };
 
   const resetFilters = () => {
     setFilters({
-      selectedProject: [],
-      selectedTeam: [],
+      selectedProject: ['All'],
+      selectedTeam: ['All'],
       selectedAssignee: [],
     });
   };
 
   return {
     filters,
-    updateProjectFilter: handleProjectToggle,
-    updateTeamFilter: handleTeamToggle,
-    updateAssigneeFilter,
+    updateProjectFilter,
+    updateTeamFilter,
+    updateAssigneeFilter: () => {},
     resetFilters,
   };
 };
