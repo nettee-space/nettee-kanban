@@ -1,25 +1,20 @@
 // components/Sidebar/AssigneeFilter.tsx
 import { E_Team } from '../../constants/kanban';
 import { netteeMembers } from '../../constants/nettee';
+import { useFilterStore } from '../../store/filterStore';
 
-interface AssigneeFilterProps {
-  selectedTeams: string[];
-  selectedAssignees: string[];
-  isOpen: boolean;
-  onTeamToggle: (team: string) => void;
-  onAccordionToggle: () => void;
-}
+export function AssigneeFilter() {
+  const {
+    selectedTeams,
+    selectedAssignees,
+    assigneeAccordionOpen,
+    toggleTeam,
+    toggleAssignee,
+    toggleAssigneeAccordion,
+  } = useFilterStore();
 
-export function AssigneeFilter({
-  selectedTeams,
-  selectedAssignees,
-  isOpen,
-  onTeamToggle,
-  onAccordionToggle,
-}: AssigneeFilterProps) {
   const teamList = Object.values(E_Team);
   const memberList = Object.values(netteeMembers).flat();
-  console.log(memberList);
 
   const teamMembers = selectedTeams.includes('All')
     ? memberList
@@ -31,15 +26,15 @@ export function AssigneeFilter({
     <div className="border-t border-[#dbdbdb] py-[20px]">
       <div className="flex items-center justify-between">
         <p>담당자</p>
-        <button type="button" onClick={onAccordionToggle}>
-          {isOpen ? '▼' : '▲'}
+        <button type="button" onClick={toggleAssigneeAccordion}>
+          {assigneeAccordionOpen ? '▼' : '▲'}
         </button>
       </div>
 
       <div
         className="flex flex-col overflow-hidden pt-[10px]"
         style={{
-          height: isOpen ? '100%' : '0px',
+          height: assigneeAccordionOpen ? '100%' : '0px',
         }}
       >
         <div className="flex flex-wrap gap-[8px] pt-[8px] pb-[16px]">
@@ -52,7 +47,7 @@ export function AssigneeFilter({
                   ? 'bg-[#0065FF] text-white'
                   : 'bg-[#ededed]'
               }`}
-              onClick={() => onTeamToggle(team)}
+              onClick={() => toggleTeam(team)}
             >
               {team}
             </button>
@@ -67,6 +62,7 @@ export function AssigneeFilter({
                   type="checkbox"
                   className="h-[18px] w-[18px] rounded-[4px]"
                   checked={selectedAssignees.includes(member)}
+                  onChange={() => toggleAssignee(member)}
                 />
                 <div className="h-[20px] w-[20px] rounded-full bg-[#dbdbdb]"></div>
                 {member}

@@ -1,8 +1,9 @@
 // components/Sidebar/index.tsx
 import { AssigneeFilter } from './AssigneeFilter';
-import { LabelFilter, ViewOptions } from './LabelFilter';
+import { LabelFilter } from './LabelFilter';
 import { ProjectFilter } from './ProjectFilter';
 import { TeamFilter } from './TeamFilter';
+import { ViewOptions } from './ViewOptions';
 
 interface SidebarProps {
   filters: {
@@ -50,27 +51,9 @@ export function Sidebar({
       </div>
 
       {/* 필터 섹션들 */}
-      <ProjectFilter
-        selectedProjects={filters.selectedProject}
-        isOpen={accordionMap['sidebar-project']}
-        onToggle={onProjectToggle}
-        onAccordionToggle={() => onAccordionToggle('sidebar-project')}
-      />
-
-      <TeamFilter
-        selectedTeams={filters.selectedTeam}
-        isOpen={accordionMap['sidebar-team']}
-        onToggle={onTeamToggle}
-        onAccordionToggle={() => onAccordionToggle('sidebar-team')}
-      />
-
-      <AssigneeFilter
-        selectedTeams={filters.selectedTeam}
-        selectedAssignees={filters.selectedAssignee}
-        isOpen={accordionMap['sidebar-assignee']}
-        onTeamToggle={onTeamToggle}
-        onAccordionToggle={() => onAccordionToggle('sidebar-assignee')}
-      />
+      <ProjectFilter />
+      <TeamFilter />
+      <AssigneeFilter />
 
       <LabelFilter
         isOpen={accordionMap['sidebar-label']}

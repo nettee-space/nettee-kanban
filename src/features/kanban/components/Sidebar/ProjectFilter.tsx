@@ -1,38 +1,40 @@
 import { projectList } from '../../constants/kanban';
+import { useFilterStore } from '../../store/filterStore';
 
-interface ProjectFilterProps {
-  selectedProjects: string[];
-  isOpen: boolean;
-  onToggle: (project: string) => void;
-  onAccordionToggle: () => void;
-}
+export function ProjectFilter() {
+  const {
+    selectedProjects,
+    projectAccordionOpen,
+    toggleProject,
+    toggleProjectAccordion,
+  } = useFilterStore();
 
-export function ProjectFilter({
-  selectedProjects,
-  isOpen,
-  onToggle,
-  onAccordionToggle,
-}: ProjectFilterProps) {
+  const allProjectList = projectList;
+
   return (
     <div className="border-t border-[#dbdbdb] py-[20px]">
       <div className="flex items-center justify-between">
         <p>프로젝트 선택</p>
-        <button type="button" onClick={onAccordionToggle}>
-          {isOpen ? '▼' : '▲'}
+        <button type="button" onClick={toggleProjectAccordion}>
+          {projectAccordionOpen ? '▼' : '▲'}
         </button>
       </div>
 
-      <ul className={`overflow-hidden pt-[10px] ${isOpen ? 'h-full' : 'h-0'}`}>
-        {projectList.map((project) => (
+      <ul
+        className={`overflow-hidden pt-[10px] ${projectAccordionOpen ? 'h-full' : 'h-0'}`}
+      >
+        {allProjectList.map((project) => (
           <li key={`${project}_project`} className="px-[8px] py-[6px]">
             <label className="flex items-center gap-[8px]">
               <input
                 type="checkbox"
                 className="h-[18px] w-[18px] rounded-[4px]"
                 checked={selectedProjects.includes(project)}
-                onChange={() => onToggle(project)}
+                onChange={() => toggleProject(project)}
               />
-              {project}
+              <span className={project === 'All' ? 'font-semibold' : ''}>
+                {project}
+              </span>
             </label>
           </li>
         ))}
