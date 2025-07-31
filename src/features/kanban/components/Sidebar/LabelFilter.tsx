@@ -1,43 +1,48 @@
 // components/Sidebar/LabelFilter.tsx
-const dummyLabels = [
-  '보류',
-  '낮음',
-  '보통',
-  '보통',
-  '높음',
-  '높음',
-  '매우 높음',
-];
+import { dummyLabels } from '../../constants/kanban';
+import { useFilterStore } from '../../store/filterStore';
 
-interface LabelFilterProps {
-  isOpen: boolean;
-  onAccordionToggle: () => void;
-}
+export function LabelFilter() {
+  const {
+    selectedLabels,
+    labelAccordionOpen,
+    toggleLabel,
+    toggleLabelAccordion,
+  } = useFilterStore();
 
-export function LabelFilter({ isOpen, onAccordionToggle }: LabelFilterProps) {
+  const allLabelList = dummyLabels;
+
   return (
     <div className="border-t border-[#dbdbdb] py-[20px]">
       <div className="flex items-center justify-between">
         <p>라벨</p>
-        <button type="button" onClick={onAccordionToggle}>
-          {isOpen ? '▼' : '▲'}
+        <button type="button" onClick={toggleLabelAccordion}>
+          {labelAccordionOpen ? '▼' : '▲'}
         </button>
       </div>
 
       <div
         className={`flex flex-col overflow-hidden pt-[10px] ${
-          isOpen ? 'h-full' : 'h-0'
+          labelAccordionOpen ? 'h-full' : 'h-0'
         }`}
       >
         <div className="flex flex-wrap gap-[8px] p-[8px]">
-          {dummyLabels.map((label, idx) => (
-            <span
-              key={`${idx + label}_label`}
-              className="h-[24px] rounded-full bg-[#ededed] px-[12px] py-[2px]"
-            >
-              {label}
-            </span>
-          ))}
+          {allLabelList.map((label, idx) => {
+            const isSelected = selectedLabels.includes(label);
+            return (
+              <span
+                key={`${idx + label}_label`}
+                onClick={() => toggleLabel(label)}
+                className={`text-xxl h-[24px] cursor-pointer rounded-full px-[12px] py-[2px] transition-colors ${
+                  isSelected
+                    ? 'bg-[#0065FF] text-white'
+                    : 'bg-[#ededed] text-black'
+                }`}
+              >
+                {label}
+              </span>
+            );
+          })}
         </div>
       </div>
     </div>

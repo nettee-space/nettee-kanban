@@ -2,17 +2,19 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { E_Team, projectList } from '../constants/kanban';
+import { dummyLabels, E_Team, projectList } from '../constants/kanban';
 import { netteeMembers } from '../constants/nettee';
 
 interface FilterState {
   selectedProjects: string[];
   selectedTeams: string[];
   selectedAssignees: string[];
+  selectedLabels: string[];
 
   projectAccordionOpen: boolean;
   teamAccordionOpen: boolean;
   assigneeAccordionOpen: boolean;
+  labelAccordionOpen: boolean;
 
   toggleProject: (project: string) => void;
   clearProjects: () => void;
@@ -29,6 +31,11 @@ interface FilterState {
   selectAllAssignees: () => void;
   toggleAssigneeAccordion: () => void;
 
+  toggleLabel: (label: string) => void;
+  clearLabels: () => void;
+  selectAllLabels: () => void;
+  toggleLabelAccordion: () => void;
+
   resetAllFilters: () => void;
 
   getFilteredData?: (data: any[]) => any[];
@@ -40,6 +47,7 @@ export const useFilterStore = create<FilterState>()(
       selectedProjects: [],
       selectedTeams: [],
       selectedAssignees: [],
+      selectedLabels: [],
       projectAccordionOpen: true,
       teamAccordionOpen: true,
       assigneeAccordionOpen: true,
@@ -211,6 +219,20 @@ export const useFilterStore = create<FilterState>()(
           false,
           'toggleAssigneeAccordion'
         ),
+
+      toggleLabel: (label) =>
+        set((state) => {
+          const exists = state.selectedLabels.includes(label);
+          const next = exists
+            ? state.selectedLabels.filter((l) => l !== label)
+            : [...state.selectedLabels, label];
+          return { selectedLabels: next };
+        }),
+
+      clearLabels: () => set({ selectedLabels: [] }),
+      selectAllLabels: () => set({ selectedLabels: [...dummyLabels] }),
+      toggleLabelAccordion: () =>
+        set((state) => ({ labelAccordionOpen: !state.labelAccordionOpen })),
 
       resetAllFilters: () =>
         set(
