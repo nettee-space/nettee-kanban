@@ -1,4 +1,6 @@
-import { projectList } from '../../constants/kanban';
+import { useEffect, useState } from 'react';
+
+import { fetchProjectList, projectList } from '../../constants/kanban';
 import { useFilterStore } from '../../store/filterStore';
 
 export function ProjectFilter() {
@@ -9,7 +11,18 @@ export function ProjectFilter() {
     toggleProjectAccordion,
   } = useFilterStore();
 
-  const allProjectList = projectList;
+  const [list, setList] = useState<string[]>(projectList); // 초기값
+
+  // Supabase에서 fetch + projectList에 merge + local set
+  useEffect(() => {
+    const load = async () => {
+      const updatedList = await fetchProjectList(); // projectList 내부도 갱신됨
+      setList([...updatedList]); // 로컬 상태도 업데이트
+    };
+    load();
+  }, []);
+
+  const allProjectList = list;
 
   return (
     <div className="border-t border-[#dbdbdb] py-[20px]">

@@ -1,5 +1,7 @@
 // components/Sidebar/AssigneeFilter.tsx
-import { E_Team } from '../../constants/kanban';
+import { useEffect, useState } from 'react';
+
+import { E_Team, fetchTeamList } from '../../constants/kanban';
 import { netteeMembers } from '../../constants/nettee';
 import { useFilterStore } from '../../store/filterStore';
 
@@ -13,7 +15,17 @@ export function AssigneeFilter() {
     toggleAssigneeAccordion,
   } = useFilterStore();
 
-  const teamList = Object.values(E_Team);
+  const [teamList, setTeamList] = useState<[string, string][]>(E_Team);
+
+  useEffect(() => {
+    const loadTeams = async () => {
+      const teams = await fetchTeamList();
+      setTeamList(teams);
+    };
+    loadTeams();
+  }, []);
+
+  const allTeamList = teamList.map(([, name]) => name);
   const memberList = Object.values(netteeMembers).flat();
 
   const teamMembers = selectedTeams.includes('All')
@@ -38,7 +50,7 @@ export function AssigneeFilter() {
         }}
       >
         <div className="flex flex-wrap gap-[8px] pt-[8px] pb-[16px]">
-          {teamList.map((team) => (
+          {allTeamList.map((team) => (
             <button
               key={`${team}_button`}
               type="button"
