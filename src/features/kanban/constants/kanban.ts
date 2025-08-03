@@ -8,6 +8,7 @@ export enum E_Team {
 }
 export const sidebarList = ['project', 'team', 'assignee', 'label', 'more'];
 export const projectList = ['All', 'Blolet', 'Kanban', 'onBoard'];
+export const dummyLabels = ['보류', '낮음', '보통', '높음', '매우 높음'];
 
 export const kanbanStyleMap = {
   TODO: {
