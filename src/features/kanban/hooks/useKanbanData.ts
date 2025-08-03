@@ -1,6 +1,8 @@
-import { supabase } from '@/shared/lib/supa-client';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
+
+import { supabase } from '@/shared/lib/supa-client';
+
 import { netteeRepo } from '../constants/nettee';
 import { GroupedIssues, IssueData, KanbanProgress } from '../types/issues';
 

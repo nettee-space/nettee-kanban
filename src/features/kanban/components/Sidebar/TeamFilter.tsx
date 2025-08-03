@@ -1,12 +1,24 @@
 // components/Sidebar/TeamFilter.tsx
-import { E_Team } from '../../constants/kanban';
+import { useEffect, useState } from 'react';
+
+import { E_Team, fetchTeamList } from '../../constants/kanban';
 import { useFilterStore } from '../../store/filterStore';
 
 export function TeamFilter() {
   const { selectedTeams, teamAccordionOpen, toggleTeam, toggleTeamAccordion } =
     useFilterStore();
 
-  const allTeamList = Object.values(E_Team);
+  const [teamList, setTeamList] = useState<[string, string][]>(E_Team);
+
+  useEffect(() => {
+    const loadTeams = async () => {
+      const teams = await fetchTeamList();
+      setTeamList(teams);
+    };
+    loadTeams();
+  }, []);
+
+  const allTeamList = teamList.map(([, name]) => name);
 
   return (
     <div className="border-t border-[#dbdbdb] py-[20px]">

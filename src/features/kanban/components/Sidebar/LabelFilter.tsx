@@ -1,5 +1,7 @@
 // components/Sidebar/LabelFilter.tsx
-import { dummyLabels } from '../../constants/kanban';
+import { useEffect, useState } from 'react';
+
+import { dummyLabels, fetchTaskPriorities } from '../../constants/kanban';
 import { useFilterStore } from '../../store/filterStore';
 
 export function LabelFilter() {
@@ -10,12 +12,22 @@ export function LabelFilter() {
     toggleLabelAccordion,
   } = useFilterStore();
 
-  const allLabelList = dummyLabels;
+  const [list, setList] = useState<string[]>(dummyLabels); // 초기값
+
+  useEffect(() => {
+    const load = async () => {
+      const updatedList = await fetchTaskPriorities();
+      setList([...updatedList]); // 로컬 상태도 업데이트
+    };
+    load();
+  }, []);
+
+  const allLabelList = list;
 
   return (
     <div className="border-t border-[#dbdbdb] py-[20px]">
       <div className="flex items-center justify-between">
-        <p>라벨</p>
+        <p>작업중요도</p>
         <button type="button" onClick={toggleLabelAccordion}>
           {labelAccordionOpen ? '▼' : '▲'}
         </button>
