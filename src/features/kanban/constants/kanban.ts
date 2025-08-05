@@ -1,14 +1,78 @@
+import { supabaseUtils } from '@/supabase/supabaseUtil';
+
 export enum E_Team {
   all = 'All',
   lead = 'Lead',
   pl = 'PL',
   fe = 'FE',
   be = 'BE',
-  ux = 'UX/UI',
+  ux = 'UXUI',
 }
+export let E_TeamList: [string, string][] = [['all', 'All']];
+
+export const fetchTeamList = async (): Promise<[string, string][]> => {
+  try {
+    const result = await supabaseUtils.getTeams(); // [{ id, name }]
+
+    const teams: [string, string][] = [['all', 'All']];
+
+    for (const team of result) {
+      if (team.name && team.id !== undefined) {
+        teams.push([String(team.id), team.name]);
+      }
+    }
+
+    E_TeamList = teams;
+    return E_TeamList;
+  } catch (e) {
+    console.error('팀 목록 불러오기 실패:', e);
+    return E_TeamList;
+  }
+};
+
+export let projectList: [string, string][] = [['all', 'All']];
+export const fetchProjectList = async (): Promise<[string, string][]> => {
+  try {
+    const result = await supabaseUtils.getProjects();
+
+    const projects: [string, string][] = [['all', 'All']];
+
+    for (const project of result) {
+      if (project.name && project.id !== undefined) {
+        projects.push([String(project.id), project.name]);
+      }
+    }
+
+    projectList = projects;
+
+    return projectList;
+  } catch (e) {
+    console.error('프로젝트 목록 불러오기 실패', e);
+    return projectList; // fallback: 기존 값 유지
+  }
+};
+
+export let dummyLabels: string[] = [];
+
+export const fetchTaskPriorities = async (): Promise<string[]> => {
+  try {
+    const result = await supabaseUtils.getTaskPriorities(); // [{ name }]
+    const names = result
+      .map((p: { priority_name?: string }) => p.priority_name)
+      .filter((priority_name): priority_name is string =>
+        Boolean(priority_name)
+      );
+
+    dummyLabels = Array.from(new Set(names));
+
+    return dummyLabels;
+  } catch (e) {
+    console.error('작업중요도 목록 불러오기 실패:', e);
+    return dummyLabels;
+  }
+};
+
 export const sidebarList = ['project', 'team', 'assignee', 'label', 'more'];
-export const projectList = ['All', 'Blolet', 'Kanban', 'onBoard'];
-export const dummyLabels = ['보류', '낮음', '보통', '높음', '매우 높음'];
 
 export const kanbanStyleMap = {
   TODO: {
