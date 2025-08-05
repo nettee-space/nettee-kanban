@@ -1,3 +1,5 @@
+import { Checkbox } from '@/shared/components/ui/checkbox';
+
 import { projectList } from '../../constants/kanban';
 import { useFilterStore } from '../../store/filterStore';
 
@@ -26,11 +28,10 @@ export function ProjectFilter() {
         {allProjectList.map((project) => (
           <li key={`${project}_project`} className="px-[8px] py-[6px]">
             <label className="flex items-center gap-[8px]">
-              <input
-                type="checkbox"
-                className="h-[18px] w-[18px] rounded-[4px]"
+              <Checkbox
+                id={`checkbox-${project}`}
                 checked={selectedProjects.includes(project)}
-                onChange={() => toggleProject(project)}
+                onCheckedChange={() => toggleProject(project)}
               />
               <span className={project === 'All' ? 'font-semibold' : ''}>
                 {project}

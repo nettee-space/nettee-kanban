@@ -1,4 +1,6 @@
 // components/Sidebar/TeamFilter.tsx
+import { Checkbox } from '@/shared/components/ui/checkbox';
+
 import { E_Team } from '../../constants/kanban';
 import { useFilterStore } from '../../store/filterStore';
 
@@ -23,11 +25,10 @@ export function TeamFilter() {
         {allTeamList.map((team) => (
           <li key={`${team}_team`} className="px-[8px] py-[6px]">
             <label className="flex items-center gap-[8px]">
-              <input
-                type="checkbox"
-                className="h-[18px] w-[18px] rounded-[4px]"
+              <Checkbox
+                id={`checkbox-${team}`}
                 checked={selectedTeams.includes(team)}
-                onChange={() => toggleTeam(team)}
+                onCheckedChange={() => toggleTeam(team)}
               />
               <span className={team === 'All' ? 'font-semibold' : ''}>
                 {team}

@@ -1,4 +1,6 @@
 // components/Sidebar/AssigneeFilter.tsx
+import { Checkbox } from '@/shared/components/ui/checkbox';
+
 import { E_Team } from '../../constants/kanban';
 import { netteeMembers } from '../../constants/nettee';
 import { useFilterStore } from '../../store/filterStore';
@@ -58,11 +60,10 @@ export function AssigneeFilter() {
           {teamMembers.map((member, idx) => (
             <li key={`${idx + member}_assignee`} className="px-[8px] py-[6px]">
               <label className="flex items-center gap-[8px]">
-                <input
-                  type="checkbox"
-                  className="h-[18px] w-[18px] rounded-[4px]"
+                <Checkbox
+                  id={`checkbox-${member}`}
                   checked={selectedAssignees.includes(member)}
-                  onChange={() => toggleAssignee(member)}
+                  onCheckedChange={() => toggleAssignee(member)}
                 />
                 <div className="h-[20px] w-[20px] rounded-full bg-[#dbdbdb]"></div>
                 {member}
