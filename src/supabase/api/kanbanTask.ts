@@ -1,26 +1,54 @@
 import { supabase } from '@/shared/lib/supa-client';
+
+import { KanbanTask } from '../types/kanban/task';
 // import { useAuthStore } from '@/stores/authStore';
 
 // const isGuest: boolean = useAuthStore.getState().isGuest;
 const isGuest = false;
 
-// 테이블 컬럼 타입 정의
-export type KanbanTask = {
-  id: number;
-  title: string;
-  description: string;
-  status: string;
-  started_at: string | null;
-  ended_at: string | null;
-  template_id: string | null;
-  repo_url: string | null;
-  kaban_user_id: string | null;
-  task_priority_id: number | null;
-  project_id: number | null;
-  parent_task_id: number | null;
-  create_at: string | null;
-  update_at: string | null;
-  team_id: number;
+/**
+ * 'kanban_task' 테이블에서 메인 태스크와 해당 하위 태스크 목록을 트리 구조로 조회합니다.
+ * project_id, task_priority_id, kaban_user_id로 조건 검색이 가능합니다.
+ *
+ * @param {object} filters 필터 조건: 프로젝트 아이디, 작업우선중요도 아이디, 칸반사용자 아이디
+ * @returns {Promise<(KanbanTask & { children: KanbanTask[] })[]>} 트리 형태의 작업 목록
+ * @throws {Error} Supabase에서 데이터를 가져오는 중 발생한 에러
+ */
+export const getKanbanTaskTree = async (filters: {
+  project_id?: number;
+  task_priority_id?: number;
+  kaban_user_id?: string;
+}): Promise<Array<KanbanTask & { children: KanbanTask[] }>> => {
+  let query = supabase
+    .from('kanban_task')
+    .select('*')
+    .is('parent_task_id', null); // 메인 테스크만
+
+  if (filters.project_id !== undefined)
+    query = query.eq('project_id', filters.project_id);
+
+  if (filters.task_priority_id !== undefined)
+    query = query.eq('task_priority_id', filters.task_priority_id);
+
+  if (filters.kaban_user_id !== undefined)
+    query = query.eq('kaban_user_id', filters.kaban_user_id);
+
+  const { data: mainTasks, error } = await query;
+
+  if (error) throw error;
+
+  // 병렬로 자식 태스크를 가져와 트리 구성
+  const tasksWithChildren = await Promise.all(
+    (mainTasks ?? []).map(async (mainTask) => {
+      const children = await getSubTasks(mainTask.id);
+      return {
+        ...mainTask,
+        children,
+      };
+    })
+  );
+
+  return tasksWithChildren;
 };
 
 /**
@@ -31,7 +59,7 @@ export type KanbanTask = {
  * @returns {Promise<KanbanTask[]>} 작업 목록
  * @throws {Error} Supabase에서 데이터를 가져오는 중 발생한 에러
  */
-export const getKanbanTasks = async (filters: {
+export const getMainTasks = async (filters: {
   project_id?: number;
   task_priority_id?: number;
   kaban_user_id?: string;

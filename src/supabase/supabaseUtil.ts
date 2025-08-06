@@ -1,3 +1,16 @@
+import { getGithubIssueTemplates } from '@/supabase/api/githubIssueTemplate';
+import {
+  getGithubRepos,
+  getGithubReposByTeam,
+} from '@/supabase/api/githubRepo';
+import {
+  createKanbanTask,
+  deleteKanbanTask,
+  getKanbanTaskTree,
+  getMainTasks,
+  getSubTasks,
+  updateKanbanTask,
+} from '@/supabase/api/kanbanTask';
 import {
   getKanbanUsers,
   getKanbanUsersByTeamId,
@@ -19,4 +32,16 @@ export const supabaseUtils = {
   // kanban_user
   getKanbanUsers,
   getKanbanUsersByTeamId,
+  // kanban_task
+  getKanbanTaskTree,
+  getMainTasks,
+  getSubTasks,
+  createKanbanTask,
+  updateKanbanTask,
+  deleteKanbanTask,
+  // github_repo
+  getGithubRepos,
+  getGithubReposByTeam,
+  // github_issue_template
+  getGithubIssueTemplates,
 };
