@@ -1,6 +1,15 @@
 import { supabaseUtils } from '@/supabase/supabaseUtil';
 
-export let E_Team: [string, string][] = [['all', 'All']];
+export enum E_Team {
+  all = 'All',
+  lead = 'Lead',
+  pl = 'PL',
+  fe = 'FE',
+  be = 'BE',
+  ux = 'UXUI',
+}
+export let E_TeamList: [string, string][] = [['all', 'All']];
+
 export const fetchTeamList = async (): Promise<[string, string][]> => {
   try {
     const result = await supabaseUtils.getTeams(); // [{ id, name }]
@@ -13,26 +22,28 @@ export const fetchTeamList = async (): Promise<[string, string][]> => {
       }
     }
 
-    E_Team = teams;
-    return E_Team;
+    E_TeamList = teams;
+    return E_TeamList;
   } catch (e) {
     console.error('팀 목록 불러오기 실패:', e);
-    return E_Team;
+    return E_TeamList;
   }
 };
 
-export let projectList = ['All'];
-export const fetchProjectList = async (): Promise<string[]> => {
+export let projectList: [string, string][] = [['all', 'All']];
+export const fetchProjectList = async (): Promise<[string, string][]> => {
   try {
     const result = await supabaseUtils.getProjects();
 
-    const projectNames = result
-      .map((p: { name?: string }) => p.name)
-      .filter((name): name is string => Boolean(name));
+    const projects: [string, string][] = [['all', 'All']];
 
-    const combined = Array.from(new Set([...projectList, ...projectNames]));
+    for (const project of result) {
+      if (project.name && project.id !== undefined) {
+        projects.push([String(project.id), project.name]);
+      }
+    }
 
-    projectList = combined;
+    projectList = projects;
 
     return projectList;
   } catch (e) {

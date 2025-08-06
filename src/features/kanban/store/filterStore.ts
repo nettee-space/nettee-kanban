@@ -2,7 +2,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { dummyLabels, E_Team, projectList } from '../constants/kanban';
+import { dummyLabels, E_TeamList, projectList } from '../constants/kanban';
 import { netteeMembers } from '../constants/nettee';
 
 interface FilterState {
@@ -112,7 +112,7 @@ export const useFilterStore = create<FilterState>()(
         set(
           (state) => {
             let newSelectedTeams;
-            const teamList = Object.values(E_Team);
+            const teamList = E_TeamList.map(([id]) => id);
 
             if (team === 'All') {
               newSelectedTeams = state.selectedTeams.includes('All')
@@ -147,7 +147,7 @@ export const useFilterStore = create<FilterState>()(
       selectAllTeams: () =>
         set(
           () => ({
-            selectedTeams: ['All', ...Object.values(E_Team)],
+            selectedTeams: ['All', ...E_TeamList.map(([id]) => id)],
           }),
           false,
           'selectAllTeams'

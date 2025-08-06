@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 
+import { Checkbox } from '@/shared/components/ui/checkbox';
+
 import { fetchProjectList, projectList } from '../../constants/kanban';
 import { useFilterStore } from '../../store/filterStore';
 
@@ -11,7 +13,7 @@ export function ProjectFilter() {
     toggleProjectAccordion,
   } = useFilterStore();
 
-  const [list, setList] = useState<string[]>(projectList); // 초기값
+  const [list, setList] = useState<[string, string][]>(projectList); // 초기값
 
   // Supabase에서 fetch + projectList에 merge + local set
   useEffect(() => {
@@ -22,7 +24,7 @@ export function ProjectFilter() {
     load();
   }, []);
 
-  const allProjectList = list;
+  const projectObjects = list.map(([id, name]) => ({ id, name }));
 
   return (
     <div className="border-t border-[#dbdbdb] py-[20px]">
@@ -36,17 +38,24 @@ export function ProjectFilter() {
       <ul
         className={`overflow-hidden pt-[10px] ${projectAccordionOpen ? 'h-full' : 'h-0'}`}
       >
-        {allProjectList.map((project) => (
-          <li key={`${project}_project`} className="px-[8px] py-[6px]">
+        {projectObjects.map((project) => (
+          <li key={`${project.id}_project`} className="px-[8px] py-[6px]">
             <label className="flex items-center gap-[8px]">
-              <input
-                type="checkbox"
-                className="h-[18px] w-[18px] rounded-[4px]"
-                checked={selectedProjects.includes(project)}
-                onChange={() => toggleProject(project)}
+              <Checkbox
+                id={`checkbox-${project}`}
+                checked={selectedProjects.includes(project.id)}
+                onCheckedChange={() => {
+                  console.log(
+                    'toggleProject 호출값 ID:',
+                    project.id,
+                    'Name:',
+                    project.name
+                  );
+                  toggleProject(project.id);
+                }}
               />
-              <span className={project === 'All' ? 'font-semibold' : ''}>
-                {project}
+              <span className={project.name === 'All' ? 'font-semibold' : ''}>
+                {project.name}
               </span>
             </label>
           </li>
