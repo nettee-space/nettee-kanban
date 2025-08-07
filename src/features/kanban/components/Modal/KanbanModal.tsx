@@ -17,22 +17,17 @@ import { Calendar } from '@/shared/components/ui/calendar';
 import { octokit } from '@/shared/lib/git-octokit';
 
 import { netteeRepo } from '../../constants/nettee';
-import {
-  GroupedIssues,
-  IssueData,
-  KanbanProgress,
-  UpsertIssuePayload,
-} from '../../types/issues';
+import { IssueData, UpsertIssuePayload } from '../../types/issues';
 
 type SetState<T> = Dispatch<SetStateAction<T>>;
 
 interface ModalProps {
   item: Partial<IssueData>;
   setModal: SetState<Partial<IssueData> | null>;
-  setIssues: SetState<GroupedIssues>;
+  // setIssues: SetState<GroupedIssues>;
 }
 
-export function KanbanModal({ item, setModal, setIssues }: ModalProps) {
+export function KanbanModal({ item, setModal }: ModalProps) {
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState<Record<string, string>>({});
@@ -127,26 +122,27 @@ export function KanbanModal({ item, setModal, setIssues }: ModalProps) {
       const issue = await response.json();
       console.log(issue);
 
-      setIssues((prev) => {
-        const updated: GroupedIssues = { ...prev };
+      // TODO: zustand로 관리되는 로컬값 수정
+      // setIssues((prev) => {
+      //   const updated: GroupedIssues = { ...prev };
 
-        const project = item.project;
-        const team = item.team;
-        const progress = (item.progress ?? 'TODO') as KanbanProgress;
+      //   const project = item.project;
+      //   const team = item.team;
+      //   const progress = (item.progress ?? 'TODO') as KanbanProgress;
 
-        if (!project || !team || !progress) return prev; // fallback
+      //   if (!project || !team || !progress) return prev; // fallback
 
-        const status: KanbanProgress[] = ['TODO', 'DOING', 'DONE'];
-        for (const key of status) {
-          updated[project][team][key] = updated[project][team][key].filter(
-            (i) => i.number !== issue.data.number
-          );
-        }
+      //   const status: KanbanProgress[] = ['TODO', 'DOING', 'DONE'];
+      //   for (const key of status) {
+      //     updated[project][team][key] = updated[project][team][key].filter(
+      //       (i) => i.number !== issue.data.number
+      //     );
+      //   }
 
-        updated[project][team][progress].unshift(issue.data);
+      //   updated[project][team][progress].unshift(issue.data);
 
-        return updated;
-      });
+      //   return updated;
+      // });
 
       setModal(null);
     } catch (error) {
