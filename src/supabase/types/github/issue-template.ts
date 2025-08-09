@@ -4,6 +4,5 @@ export type GithubIssueTemplate = {
   name: string;
   title: string;
   body: string;
-  raw: string;
   updated_at: string;
 };
