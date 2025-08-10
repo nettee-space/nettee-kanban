@@ -52,18 +52,20 @@ export const fetchProjectList = async (): Promise<[string, string][]> => {
   }
 };
 
-export let dummyLabels: string[] = [];
+export let dummyLabels: [string, string][] = [];
 
-export const fetchTaskPriorities = async (): Promise<string[]> => {
+export const fetchTaskPriorities = async (): Promise<[string, string][]> => {
   try {
     const result = await supabaseUtils.getTaskPriorities(); // [{ name }]
-    const names = result
-      .map((p: { priority_name?: string }) => p.priority_name)
-      .filter((priority_name): priority_name is string =>
-        Boolean(priority_name)
-      );
 
-    dummyLabels = Array.from(new Set(names));
+    const labels: [string, string][] = [];
+
+    for (const priority of result) {
+      if (priority.priority_name && priority.id !== undefined) {
+        labels.push([String(priority.id), priority.priority_name]);
+      }
+    }
+    dummyLabels = labels;
 
     return dummyLabels;
   } catch (e) {
