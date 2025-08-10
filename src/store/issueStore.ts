@@ -68,11 +68,11 @@ export const useIssueStore = create<IssueState>((set, get) => ({
     const assignees = [
       '송문혁',
       '박경우',
-      '김지현',
-      '이민수',
-      '최수진',
-      '정다영',
-      '장승우',
+      '나선오',
+      '이재상',
+      '강민성',
+      '박지성',
+      '장은영',
     ];
     const priorities: IssueData['task_priority'][] = ['low', 'medium', 'high'];
 
