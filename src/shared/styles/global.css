@@ -39,6 +39,79 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Primary Scale - 자동 유틸리티 생성을 위한 색상 정의 */
+  --color-primary-1: oklch(0.9939 0.002854 264.5423); /* #FCFDFF */
+  --color-primary-2: oklch(0.9808 0.0091 258.34); /* #F5F9FF */
+  --color-primary-3: oklch(0.9712 0.0136 258.34); /* #F0F6FF */
+  --color-primary-4: oklch(0.9268 0.0352 258.87); /* #D9E8FF */
+  --color-primary-5: oklch(0.8786 0.0597 257.79); /* #BFD9FF */
+  --color-primary-6: oklch(0.7829 0.1108 258.29); /* #8CBAFF */
+  --color-primary-7: oklch(0.6923 0.1625 258.52); /* #599BFF */
+  --color-primary-8: oklch(0.6594 0.1821 258.66); /* #458FFF */
+  --color-primary-9: oklch(0.6115 0.2111 259.37); /* #267CFF */
+  --color-primary-10: oklch(0.6001 0.2181 259.75); /* #1F77FF */
+  --color-primary-11: oklch(0.5865 0.2265 260.04); /* #1471FF */
+  --color-primary-12: oklch(0.5616 0.2419 260.95); /* #0065FF */
+  --color-primary-13: oklch(0.4356 0.1825 260.48); /* #0047B3 */
+  --color-primary-14: oklch(0.3959 0.1634 260.22); /* #003E9C */
+
+  /* Black Scale */
+  --color-black-1: oklch(1 0 0); /* #FFFFFF */
+  --color-black-2: oklch(0.98 0 0); /* #F8F8F8 */
+  --color-black-3: oklch(0.96 0 0); /* #F5F5F5 */
+  --color-black-4: oklch(0.94 0 0); /* #F1F1F1 */
+  --color-black-5: oklch(0.74 0 0); /* #DBDBDB */
+  --color-black-6: oklch(0.55 0 0); /* #C3C3C3 */
+  --color-black-7: oklch(0.44 0 0); /* #939393 */
+  --color-black-8: oklch(0.34 0 0); /* #646464 */
+  --color-black-9: oklch(0.32 0 0); /* #515151 */
+  --color-black-10: oklch(0.2 0 0); /* #343434 */
+  --color-black-11: oklch(0.13 0 0); /* #2D2D2D */
+  --color-black-12: oklch(0.14 0 0); /* #232323 */
+  --color-black-13: oklch(0.06 0 0); /* #101010 */
+
+  /* States Scale - Red */
+  --color-red-1: oklch(0.9452 0.0274 17.65); /* #FDEBEB */
+  --color-red-2: oklch(0.8793 0.064078 18.4457); /* #F9C5C5 */
+  --color-red-3: oklch(0.7909 0.0992 19.51); /* #F39C9C */
+  --color-red-4: oklch(0.6164 0.2192 26.55); /* #DC2626 */
+
+  /* States Scale - Pink */
+  --color-pink-1: oklch(0.9698 0.0207 337.69); /* #FDF2F8 */
+  --color-pink-2: oklch(0.9419 0.0402 338.62); /* #FCE7F3 */
+  --color-pink-3: oklch(0.89 0.0791 339.24); /* #F9A8D4 */
+  --color-pink-4: oklch(0.6854 0.2239 344.1); /* #EC4899 */
+
+  /* States Scale - Orange */
+  --color-orange-1: oklch(0.9622 0.0288 72.48); /* #FFF7ED */
+  --color-orange-2: oklch(0.924 0.0553 68.81); /* #FFEDD5 */
+  --color-orange-3: oklch(0.8576 0.106 67.43); /* #FED7AA */
+  --color-orange-4: oklch(0.7244 0.1755 56.08); /* #F97316 */
+
+  /* States Scale - Yellow */
+  --color-yellow-1: oklch(0.9837 0.038 100.62); /* #FFFBEB */
+  --color-yellow-2: oklch(0.9689 0.0721 100.82); /* #FEF3C7 */
+  --color-yellow-3: oklch(0.943 0.1304 100.99); /* #FDE68A */
+  --color-yellow-4: oklch(0.7947 0.1672 75.42); /* #F59E0B */
+
+  /* States Scale - Green */
+  --color-green-1: oklch(0.9728 0.0308 133.29); /* #F0FDF4 */
+  --color-green-2: oklch(0.9473 0.0601 133.2); /* #DCFCE7 */
+  --color-green-3: oklch(0.8997 0.1151 133.69); /* #BBF7D0 */
+  --color-green-4: oklch(0.7122 0.209 137.37); /* #16A34A */
+
+  /* States Scale - Blue */
+  --color-blue-1: oklch(0.9584 0.0196 245.64); /* #EFF6FF */
+  --color-blue-2: oklch(0.9199 0.0384 244.61); /* #DBEAFE */
+  --color-blue-3: oklch(0.8455 0.0752 245.75); /* #93C5FD */
+  --color-blue-4: oklch(0.6106 0.1687 251.82); /* #2563EB */
+
+  /* States Scale - Purple */
+  --color-purple-1: oklch(0.9327 0.0283 290.22); /* #FAF5FF */
+  --color-purple-2: oklch(0.8678 0.0565 289.64); /* #E9D5FF */
+  --color-purple-3: oklch(0.7427 0.1129 287.96); /* #C084FC */
+  --color-purple-4: oklch(0.5131 0.2091 280.81); /* #9333EA */
 }
 
 :root {
@@ -117,6 +190,17 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@layer utilities {
+  /* 
+   * Tailwind CSS v4에서는 @theme inline의 --color- 접두사 색상들이 
+   * 자동으로 text-, bg-, border- 유틸리티 클래스를 생성합니다.
+   * 
+   * 예: --color-primary-4 → text-primary-4, bg-primary-4, border-primary-4
+   * 
+   * 필요한 경우에만 커스텀 유틸리티를 여기에 추가하세요.
+   */
 }
 
 @font-face {
