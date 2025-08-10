@@ -40,78 +40,78 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  /* Primary Scale */
-  --primary-1: oklch(0.98 0.02 240); /* #FCFDFF */
-  --primary-2: oklch(0.96 0.04 240); /* #F3F9FF */
-  --primary-3: oklch(0.92 0.08 240); /* #E6F8FF */
-  --primary-4: oklch(0.85 0.12 300); /* #D968FF */
-  --primary-5: oklch(0.84 0.12 240); /* #BFD5FF */
-  --primary-6: oklch(0.76 0.16 240); /* #8CBAFF */
-  --primary-7: oklch(0.68 0.2 240); /* #5999FF */
-  --primary-8: oklch(0.6 0.24 240); /* #4A8FFF */
-  --primary-9: oklch(0.58 0.26 240); /* #267DFF */
-  --primary-10: oklch(0.56 0.28 240); /* #1F77FF */
-  --primary-11: oklch(0.54 0.3 240); /* #1971FF */
-  --primary-12: oklch(0.44 0.32 240); /* #0055FF */
-  --primary-13: oklch(0.36 0.36 240); /* #0047B3 */
-  --primary-14: oklch(0.28 0.4 240); /* #003E9C */
+  /* Primary Scale - 자동 유틸리티 생성을 위한 색상 정의 */
+  --color-primary-1: oklch(0.9939 0.002854 264.5423); /* #FCFDFF */
+  --color-primary-2: oklch(0.9808 0.0091 258.34); /* #F5F9FF */
+  --color-primary-3: oklch(0.9712 0.0136 258.34); /* #F0F6FF */
+  --color-primary-4: oklch(0.9268 0.0352 258.87); /* #D9E8FF */
+  --color-primary-5: oklch(0.8786 0.0597 257.79); /* #BFD9FF */
+  --color-primary-6: oklch(0.7829 0.1108 258.29); /* #8CBAFF */
+  --color-primary-7: oklch(0.6923 0.1625 258.52); /* #599BFF */
+  --color-primary-8: oklch(0.6594 0.1821 258.66); /* #458FFF */
+  --color-primary-9: oklch(0.6115 0.2111 259.37); /* #267CFF */
+  --color-primary-10: oklch(0.6001 0.2181 259.75); /* #1F77FF */
+  --color-primary-11: oklch(0.5865 0.2265 260.04); /* #1471FF */
+  --color-primary-12: oklch(0.5616 0.2419 260.95); /* #0065FF */
+  --color-primary-13: oklch(0.4356 0.1825 260.48); /* #0047B3 */
+  --color-primary-14: oklch(0.3959 0.1634 260.22); /* #003E9C */
 
   /* Black Scale */
-  --black-1: oklch(1 0 0); /* #FFFFFF */
-  --black-2: oklch(0.98 0 0); /* #F8F8F8 */
-  --black-3: oklch(0.96 0 0); /* #F5F5F5 */
-  --black-4: oklch(0.94 0 0); /* #F1F1F1 */
-  --black-5: oklch(0.74 0 0); /* #BDBDBD */
-  --black-6: oklch(0.55 0 0); /* #8C8C8C */
-  --black-7: oklch(0.44 0 0); /* #707070 */
-  --black-8: oklch(0.34 0 0); /* #565656 */
-  --black-9: oklch(0.32 0 0); /* #515151 */
-  --black-10: oklch(0.2 0 0); /* #343434 */
-  --black-11: oklch(0.13 0 0); /* #202020 */
-  --black-12: oklch(0.14 0 0); /* #232323 */
-  --black-13: oklch(0.06 0 0); /* #101010 */
+  --color-black-1: oklch(1 0 0); /* #FFFFFF */
+  --color-black-2: oklch(0.98 0 0); /* #F8F8F8 */
+  --color-black-3: oklch(0.96 0 0); /* #F5F5F5 */
+  --color-black-4: oklch(0.94 0 0); /* #F1F1F1 */
+  --color-black-5: oklch(0.74 0 0); /* #DBDBDB */
+  --color-black-6: oklch(0.55 0 0); /* #C3C3C3 */
+  --color-black-7: oklch(0.44 0 0); /* #939393 */
+  --color-black-8: oklch(0.34 0 0); /* #646464 */
+  --color-black-9: oklch(0.32 0 0); /* #515151 */
+  --color-black-10: oklch(0.2 0 0); /* #343434 */
+  --color-black-11: oklch(0.13 0 0); /* #2D2D2D */
+  --color-black-12: oklch(0.14 0 0); /* #232323 */
+  --color-black-13: oklch(0.06 0 0); /* #101010 */
 
   /* States Scale - Red */
-  --red-1: oklch(0.9452 0.0274 17.65);
-  --red-2: oklch(0.8793 0.064078 18.4457);
-  --red-3: oklch(0.7909 0.0992 19.51);
-  --red-4: oklch(0.6164 0.2192 26.55);
+  --color-red-1: oklch(0.9452 0.0274 17.65); /* #FDEBEB */
+  --color-red-2: oklch(0.8793 0.064078 18.4457); /* #F9C5C5 */
+  --color-red-3: oklch(0.7909 0.0992 19.51); /* #F39C9C */
+  --color-red-4: oklch(0.6164 0.2192 26.55); /* #DC2626 */
 
   /* States Scale - Pink */
-  --pink-1: oklch(0.9698 0.0207 337.69);
-  --pink-2: oklch(0.9419 0.0402 338.62);
-  --pink-3: oklch(0.89 0.0791 339.24);
-  --pink-4: oklch(0.6854 0.2239 344.1);
+  --color-pink-1: oklch(0.9698 0.0207 337.69); /* #FDF2F8 */
+  --color-pink-2: oklch(0.9419 0.0402 338.62); /* #FCE7F3 */
+  --color-pink-3: oklch(0.89 0.0791 339.24); /* #F9A8D4 */
+  --color-pink-4: oklch(0.6854 0.2239 344.1); /* #EC4899 */
 
   /* States Scale - Orange */
-  --orange-1: oklch(0.9622 0.0288 72.48);
-  --orange-2: oklch(0.924 0.0553 68.81);
-  --orange-3: oklch(0.8576 0.106 67.43);
-  --orange-4: oklch(0.7244 0.1755 56.08);
+  --color-orange-1: oklch(0.9622 0.0288 72.48); /* #FFF7ED */
+  --color-orange-2: oklch(0.924 0.0553 68.81); /* #FFEDD5 */
+  --color-orange-3: oklch(0.8576 0.106 67.43); /* #FED7AA */
+  --color-orange-4: oklch(0.7244 0.1755 56.08); /* #F97316 */
 
   /* States Scale - Yellow */
-  --yellow-1: oklch(0.9837 0.038 100.62);
-  --yellow-2: oklch(0.9689 0.0721 100.82);
-  --yellow-3: oklch(0.943 0.1304 100.99);
-  --yellow-4: oklch(0.7947 0.1672 75.42);
+  --color-yellow-1: oklch(0.9837 0.038 100.62); /* #FFFBEB */
+  --color-yellow-2: oklch(0.9689 0.0721 100.82); /* #FEF3C7 */
+  --color-yellow-3: oklch(0.943 0.1304 100.99); /* #FDE68A */
+  --color-yellow-4: oklch(0.7947 0.1672 75.42); /* #F59E0B */
 
   /* States Scale - Green */
-  --green-1: oklch(0.9728 0.0308 133.29);
-  --green-2: oklch(0.9473 0.0601 133.2);
-  --green-3: oklch(0.8997 0.1151 133.69);
-  --green-4: oklch(0.7122 0.209 137.37);
+  --color-green-1: oklch(0.9728 0.0308 133.29); /* #F0FDF4 */
+  --color-green-2: oklch(0.9473 0.0601 133.2); /* #DCFCE7 */
+  --color-green-3: oklch(0.8997 0.1151 133.69); /* #BBF7D0 */
+  --color-green-4: oklch(0.7122 0.209 137.37); /* #16A34A */
 
   /* States Scale - Blue */
-  --blue-1: oklch(0.9584 0.0196 245.64);
-  --blue-2: oklch(0.9199 0.0384 244.61);
-  --blue-3: oklch(0.8455 0.0752 245.75);
-  --blue-4: oklch(0.6106 0.1687 251.82);
+  --color-blue-1: oklch(0.9584 0.0196 245.64); /* #EFF6FF */
+  --color-blue-2: oklch(0.9199 0.0384 244.61); /* #DBEAFE */
+  --color-blue-3: oklch(0.8455 0.0752 245.75); /* #93C5FD */
+  --color-blue-4: oklch(0.6106 0.1687 251.82); /* #2563EB */
 
   /* States Scale - Purple */
-  --purple-1: oklch(0.9327 0.0283 290.22);
-  --purple-2: oklch(0.8678 0.0565 289.64);
-  --purple-3: oklch(0.7427 0.1129 287.96);
-  --purple-4: oklch(0.5131 0.2091 280.81);
+  --color-purple-1: oklch(0.9327 0.0283 290.22); /* #FAF5FF */
+  --color-purple-2: oklch(0.8678 0.0565 289.64); /* #E9D5FF */
+  --color-purple-3: oklch(0.7427 0.1129 287.96); /* #C084FC */
+  --color-purple-4: oklch(0.5131 0.2091 280.81); /* #9333EA */
 }
 
 :root {
@@ -193,348 +193,14 @@
 }
 
 @layer utilities {
-  /* Primary Scale */
-  .text-primary-1 {
-    color: var(--primary-1);
-  }
-  .text-primary-2 {
-    color: var(--primary-2);
-  }
-  .text-primary-3 {
-    color: var(--primary-3);
-  }
-  .text-primary-4 {
-    color: var(--primary-4);
-  }
-  .text-primary-5 {
-    color: var(--primary-5);
-  }
-  .text-primary-6 {
-    color: var(--primary-6);
-  }
-  .text-primary-7 {
-    color: var(--primary-7);
-  }
-  .text-primary-8 {
-    color: var(--primary-8);
-  }
-  .text-primary-9 {
-    color: var(--primary-9);
-  }
-  .text-primary-10 {
-    color: var(--primary-10);
-  }
-  .text-primary-11 {
-    color: var(--primary-11);
-  }
-  .text-primary-12 {
-    color: var(--primary-12);
-  }
-  .text-primary-13 {
-    color: var(--primary-13);
-  }
-  .text-primary-14 {
-    color: var(--primary-14);
-  }
-
-  .bg-primary-1 {
-    background-color: var(--primary-1);
-  }
-  .bg-primary-2 {
-    background-color: var(--primary-2);
-  }
-  .bg-primary-3 {
-    background-color: var(--primary-3);
-  }
-  .bg-primary-4 {
-    background-color: var(--primary-4);
-  }
-  .bg-primary-5 {
-    background-color: var(--primary-5);
-  }
-  .bg-primary-6 {
-    background-color: var(--primary-6);
-  }
-  .bg-primary-7 {
-    background-color: var(--primary-7);
-  }
-  .bg-primary-8 {
-    background-color: var(--primary-8);
-  }
-  .bg-primary-9 {
-    background-color: var(--primary-9);
-  }
-  .bg-primary-10 {
-    background-color: var(--primary-10);
-  }
-  .bg-primary-11 {
-    background-color: var(--primary-11);
-  }
-  .bg-primary-12 {
-    background-color: var(--primary-12);
-  }
-  .bg-primary-13 {
-    background-color: var(--primary-13);
-  }
-  .bg-primary-14 {
-    background-color: var(--primary-14);
-  }
-
-  .border-primary-4 {
-    border-color: var(--primary-4);
-  }
-  .border-primary-8 {
-    border-color: var(--primary-8);
-  }
-  .border-primary-12 {
-    border-color: var(--primary-12);
-  }
-
-  /* Black Scale */
-  .text-black-1 {
-    color: var(--black-1);
-  }
-  .text-black-4 {
-    color: var(--black-4);
-  }
-  .text-black-6 {
-    color: var(--black-6);
-  }
-  .text-black-8 {
-    color: var(--black-8);
-  }
-  .text-black-10 {
-    color: var(--black-10);
-  }
-  .text-black-13 {
-    color: var(--black-13);
-  }
-
-  .bg-black-1 {
-    background-color: var(--black-1);
-  }
-  .bg-black-2 {
-    background-color: var(--black-2);
-  }
-  .bg-black-3 {
-    background-color: var(--black-3);
-  }
-  .bg-black-4 {
-    background-color: var(--black-4);
-  }
-  .bg-black-13 {
-    background-color: var(--black-13);
-  }
-
-  /* States Colors - 전체 스케일 */
-  .text-red-1 {
-    color: var(--red-1);
-  }
-  .text-red-2 {
-    color: var(--red-2);
-  }
-  .text-red-3 {
-    color: var(--red-3);
-  }
-  .text-red-4 {
-    color: var(--red-4);
-  }
-  .bg-red-1 {
-    background-color: var(--red-1);
-  }
-  .bg-red-2 {
-    background-color: var(--red-2);
-  }
-  .bg-red-3 {
-    background-color: var(--red-3);
-  }
-  .bg-red-4 {
-    background-color: var(--red-4);
-  }
-
-  .text-pink-1 {
-    color: var(--pink-1);
-  }
-  .text-pink-2 {
-    color: var(--pink-2);
-  }
-  .text-pink-3 {
-    color: var(--pink-3);
-  }
-  .text-pink-4 {
-    color: var(--pink-4);
-  }
-  .bg-pink-1 {
-    background-color: var(--pink-1);
-  }
-  .bg-pink-2 {
-    background-color: var(--pink-2);
-  }
-  .bg-pink-3 {
-    background-color: var(--pink-3);
-  }
-  .bg-pink-4 {
-    background-color: var(--pink-4);
-  }
-
-  .text-orange-1 {
-    color: var(--orange-1);
-  }
-  .text-orange-2 {
-    color: var(--orange-2);
-  }
-  .text-orange-3 {
-    color: var(--orange-3);
-  }
-  .text-orange-4 {
-    color: var(--orange-4);
-  }
-  .bg-orange-1 {
-    background-color: var(--orange-1);
-  }
-  .bg-orange-2 {
-    background-color: var(--orange-2);
-  }
-  .bg-orange-3 {
-    background-color: var(--orange-3);
-  }
-  .bg-orange-4 {
-    background-color: var(--orange-4);
-  }
-
-  .text-yellow-1 {
-    color: var(--yellow-1);
-  }
-  .text-yellow-2 {
-    color: var(--yellow-2);
-  }
-  .text-yellow-3 {
-    color: var(--yellow-3);
-  }
-  .text-yellow-4 {
-    color: var(--yellow-4);
-  }
-  .bg-yellow-1 {
-    background-color: var(--yellow-1);
-  }
-  .bg-yellow-2 {
-    background-color: var(--yellow-2);
-  }
-  .bg-yellow-3 {
-    background-color: var(--yellow-3);
-  }
-  .bg-yellow-4 {
-    background-color: var(--yellow-4);
-  }
-
-  .text-green-1 {
-    color: var(--green-1);
-  }
-  .text-green-2 {
-    color: var(--green-2);
-  }
-  .text-green-3 {
-    color: var(--green-3);
-  }
-  .text-green-4 {
-    color: var(--green-4);
-  }
-  .bg-green-1 {
-    background-color: var(--green-1);
-  }
-  .bg-green-2 {
-    background-color: var(--green-2);
-  }
-  .bg-green-3 {
-    background-color: var(--green-3);
-  }
-  .bg-green-4 {
-    background-color: var(--green-4);
-  }
-
-  .text-blue-1 {
-    color: var(--blue-1);
-  }
-  .text-blue-2 {
-    color: var(--blue-2);
-  }
-  .text-blue-3 {
-    color: var(--blue-3);
-  }
-  .text-blue-4 {
-    color: var(--blue-4);
-  }
-  .bg-blue-1 {
-    background-color: var(--blue-1);
-  }
-  .bg-blue-2 {
-    background-color: var(--blue-2);
-  }
-  .bg-blue-3 {
-    background-color: var(--blue-3);
-  }
-  .bg-blue-4 {
-    background-color: var(--blue-4);
-  }
-
-  .text-purple-1 {
-    color: var(--purple-1);
-  }
-  .text-purple-2 {
-    color: var(--purple-2);
-  }
-  .text-purple-3 {
-    color: var(--purple-3);
-  }
-  .text-purple-4 {
-    color: var(--purple-4);
-  }
-  .bg-purple-1 {
-    background-color: var(--purple-1);
-  }
-  .bg-purple-2 {
-    background-color: var(--purple-2);
-  }
-  .bg-purple-3 {
-    background-color: var(--purple-3);
-  }
-  .bg-purple-4 {
-    background-color: var(--purple-4);
-  }
-
-  /* Border Colors */
-  .border-red-2 {
-    border-color: var(--red-2);
-  }
-  .border-green-2 {
-    border-color: var(--green-2);
-  }
-  .border-orange-2 {
-    border-color: var(--orange-2);
-  }
-  .border-blue-2 {
-    border-color: var(--blue-2);
-  }
-
-  /* Hover states */
-  .hover\:bg-primary-13:hover {
-    background-color: var(--primary-13);
-  }
-  .hover\:bg-primary-11:hover {
-    background-color: var(--primary-11);
-  }
-  .hover\:text-primary-12:hover {
-    color: var(--primary-12);
-  }
-  .hover\:bg-red-3:hover {
-    background-color: var(--red-3);
-  }
-  .hover\:bg-green-3:hover {
-    background-color: var(--green-3);
-  }
-  .hover\:bg-orange-3:hover {
-    background-color: var(--orange-3);
-  }
+  /* 
+   * Tailwind CSS v4에서는 @theme inline의 --color- 접두사 색상들이 
+   * 자동으로 text-, bg-, border- 유틸리티 클래스를 생성합니다.
+   * 
+   * 예: --color-primary-4 → text-primary-4, bg-primary-4, border-primary-4
+   * 
+   * 필요한 경우에만 커스텀 유틸리티를 여기에 추가하세요.
+   */
 }
 
 @font-face {
