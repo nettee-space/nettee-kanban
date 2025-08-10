@@ -1,78 +1,71 @@
 // hooks/useDragAndDrop.ts;
+import { useIssueStore } from '@/store/issueStore';
 import { DragEvent } from 'react';
-import { GroupedIssues, IssueData, KanbanProgress } from '../types/issues';
+import { KanbanProgress } from '../types/issues';
 
-interface UseDragAndDropProps {
-  setGroupedIssues: React.Dispatch<React.SetStateAction<GroupedIssues>>;
-}
-
-export const useDragAndDrop = ({ setGroupedIssues }: UseDragAndDropProps) => {
-  const handleDragStart = (e: DragEvent, item: IssueData) => {
-    e.dataTransfer.setData('cardId', String(item.id));
+export const useDragAndDrop = () => {
+  const { reorderIssues } = useIssueStore();
+  const handleDragStart = (
+    e: DragEvent,
+    cardId: string,
+    columnId: string,
+    cardIndex: string,
+    project: string,
+    team: string
+  ) => {
+    const dragData = {
+      cardId,
+      sourceColumnId: columnId,
+      cardIndex: cardIndex,
+      sourceProject: project,
+      sourceTeam: team,
+    };
+    e.dataTransfer.setData('application/json', JSON.stringify(dragData));
     e.dataTransfer.effectAllowed = 'move';
   };
 
   const handleDragEnd = (
     e: DragEvent,
-    project: string,
-    team: string,
-    progress: string
+    targetProject: string,
+    targetTeam: string,
+    targetProgress: string
   ) => {
-    const cardId = e.dataTransfer.getData('cardId');
-    clearHighlights(progress);
+    clearHighlights(targetProgress);
 
-    const indicators = getIndicators(progress);
-    const { element } = getNearestIndicator(e, indicators);
-    const before = element.dataset.before;
+    try {
+      const dragDataStr = e.dataTransfer.getData('application/json');
+      if (!dragDataStr) return;
 
-    if (before !== cardId) {
-      setGroupedIssues((prev) => {
-        const updated = { ...prev };
-        let cardToTransfer: IssueData | undefined;
+      const dragData = JSON.parse(dragDataStr);
+      const { cardId, sourceProject, sourceTeam, sourceColumnId } = dragData;
 
-        // 1. 전체 구조에서 카드 찾기 및 제거
-        const statuses: KanbanProgress[] = ['TODO', 'DOING', 'DONE'];
-        for (const p of Object.keys(prev)) {
-          for (const t of Object.keys(prev[p])) {
-            for (const status of statuses) {
-              const list = updated[p][t][status];
-              const idx = list.findIndex((c) => String(c.id) === cardId);
-              if (idx > -1) {
-                cardToTransfer = { ...list[idx], progress };
-                list.splice(idx, 1);
-                break;
-              }
-            }
-            if (cardToTransfer) break;
-          }
-          if (cardToTransfer) break;
-        }
+      // 동일 프로젝트/팀 내에서만 이동 허용
+      if (sourceProject !== targetProject || sourceTeam !== targetTeam) {
+        console.warn('다른 프로젝트/팀으로는 이동할 수 없습니다.');
+        return;
+      }
 
-        if (!cardToTransfer) return prev;
+      // DropIndicator 위치 기반으로 삽입 위치 결정
+      const indicators = getIndicators(targetProgress);
+      const { element } = getNearestIndicator(e, indicators);
+      const beforeId = element.dataset.before;
 
-        // 2. 타겟 컬럼에 삽입
-        const targetColumn = [
-          ...updated[project][team][progress as KanbanProgress],
-        ];
-        const moveToBack = before === '-1';
+      // 동일 위치에 드롭하는 경우 아무 작업 안함
+      if (sourceColumnId === targetProgress && beforeId === cardId) {
+        return;
+      }
 
-        if (moveToBack) {
-          targetColumn.push(cardToTransfer);
-        } else {
-          const insertIndex = targetColumn.findIndex(
-            (el) => String(el.id) === before
-          );
-          if (insertIndex === -1) {
-            console.warn('Insert target not found, adding to end');
-            targetColumn.push(cardToTransfer);
-          } else {
-            targetColumn.splice(insertIndex, 0, cardToTransfer);
-          }
-        }
-
-        updated[project][team][progress as KanbanProgress] = targetColumn;
-        return updated;
-      });
+      // 순서 변경 또는 상태 이동 수행
+      const beforeIdNum = beforeId === '-1' ? null : Number(beforeId);
+      reorderIssues(
+        Number(cardId),
+        targetProject,
+        targetTeam,
+        targetProgress as KanbanProgress,
+        beforeIdNum
+      );
+    } catch (error) {
+      console.error('드래그 앤 드롭 처리 중 오류:', error);
     }
   };
 

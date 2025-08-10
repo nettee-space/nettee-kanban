@@ -13,7 +13,7 @@ export function ProjectFilter() {
     toggleProjectAccordion,
   } = useFilterStore();
 
-  const [list, setList] = useState<[string, string][]>(projectList); // 초기값
+  const [list, setList] = useState<string[]>(projectList); // 초기값
 
   // Supabase에서 fetch + projectList에 merge + local set
   useEffect(() => {
@@ -24,7 +24,7 @@ export function ProjectFilter() {
     load();
   }, []);
 
-  const projectObjects = list.map(([id, name]) => ({ id, name }));
+  const projectObjects = list.map((name) => ({ id: name, name }));
 
   return (
     <div className="border-t border-[#dbdbdb] py-[20px]">

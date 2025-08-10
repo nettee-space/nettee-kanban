@@ -81,8 +81,9 @@ export function AssigneeFilter() {
         </div>
 
         <ul className="h-[306px] w-full overflow-y-scroll">
-          {teamMembers.map((member, idx) => (
-            <li key={`${idx + member}_assignee`} className="px-[8px] py-[6px]">
+          {teamMembers.map((member) => (
+            // TODO: 추수 같은 팀이면서 동명이인인 멤버가 있을 경우 어떻게 이름을 저장할 것인지 논의 필요
+            <li key={`${member}_assignee`} className="px-[8px] py-[6px]">
               <label className="flex items-center gap-[8px]">
                 <Checkbox
                   id={`checkbox-${member}`}

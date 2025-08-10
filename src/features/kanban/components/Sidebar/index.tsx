@@ -54,12 +54,7 @@ export function Sidebar({
       <ProjectFilter />
       <TeamFilter />
       <AssigneeFilter />
-
-      <LabelFilter
-        isOpen={accordionMap['sidebar-label']}
-        onAccordionToggle={() => onAccordionToggle('sidebar-label')}
-      />
-
+      <LabelFilter />
       <ViewOptions
         isOpen={accordionMap['sidebar-more']}
         onAccordionToggle={() => onAccordionToggle('sidebar-more')}

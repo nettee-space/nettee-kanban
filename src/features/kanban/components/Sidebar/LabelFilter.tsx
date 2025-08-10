@@ -14,7 +14,7 @@ export function LabelFilter() {
     toggleLabelAccordion,
   } = useFilterStore();
 
-  const [list, setList] = useState<[string, string][]>(dummyLabels); // 초기값
+  const [list, setList] = useState<string[]>(dummyLabels); // 초기값
 
   useEffect(() => {
     const load = async () => {
@@ -24,7 +24,7 @@ export function LabelFilter() {
     load();
   }, []);
 
-  const labelObjects = list.map(([id, name]) => ({ id, name }));
+  const labelObjects = list.map((name) => ({ id: name, name }));
 
   return (
     <div className="border-t border-[#dbdbdb] py-[20px]">

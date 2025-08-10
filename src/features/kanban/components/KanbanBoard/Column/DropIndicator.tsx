@@ -2,7 +2,7 @@ export const DropIndicator = ({
   beforeId,
   progress,
 }: {
-  beforeId: number | null;
+  beforeId: string | null;
   progress: string;
 }) => {
   return (
