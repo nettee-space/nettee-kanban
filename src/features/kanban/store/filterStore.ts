@@ -115,11 +115,11 @@ export const useFilterStore = create<FilterState>()(
             const teamList = E_TeamList.map(([id]) => id);
             console.log(team, teamList);
 
-            if (team === 'all') {
+            if (team === 'All') {
               // "All"을 클릭하면 토글 방식으로 동작
-              newSelectedTeams = state.selectedTeams.includes('all')
+              newSelectedTeams = state.selectedTeams.includes('All')
                 ? []
-                : ['all', ...teamList];
+                : ['All', ...teamList];
             } else {
               // 개별 팀을 클릭할 때
               if (state.selectedTeams.includes(team)) {
@@ -128,11 +128,11 @@ export const useFilterStore = create<FilterState>()(
                   (t) => t !== team
                 );
                 // "All"이 선택되어 있었다면 "All"도 함께 해제
-                newSelectedTeams = withoutTeam.filter((t) => t !== 'all');
+                newSelectedTeams = withoutTeam.filter((t) => t !== 'All');
               } else {
                 // 선택되지 않은 팀을 클릭하면 추가
                 const withoutAll = state.selectedTeams.filter(
-                  (t) => t !== 'all'
+                  (t) => t !== 'All'
                 );
                 const newList = [...withoutAll, team];
 
@@ -141,7 +141,7 @@ export const useFilterStore = create<FilterState>()(
                 );
 
                 newSelectedTeams = allIndividualSelected
-                  ? ['all', ...newList]
+                  ? ['All', ...newList]
                   : newList;
               }
             }

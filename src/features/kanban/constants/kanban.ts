@@ -8,13 +8,13 @@ export enum E_Team {
   be = 'BE',
   ux = 'UXUI',
 }
-export let E_TeamList: [string, string][] = [['all', 'All']];
+export let E_TeamList: [string, string][] = [['All', 'All']];
 
 export const fetchTeamList = async (): Promise<[string, string][]> => {
   try {
     const result = await supabaseUtils.getTeams(); // [{ id, name }]
 
-    const teams: [string, string][] = [['all', 'All']];
+    const teams: [string, string][] = [['All', 'All']];
 
     for (const team of result) {
       if (team.name && team.id !== undefined) {
