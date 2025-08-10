@@ -2,7 +2,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { dummyLabels, E_Team, projectList } from '../constants/kanban';
+import { dummyLabels, E_TeamList, projectList } from '../constants/kanban';
 import { netteeMembers } from '../constants/nettee';
 
 interface FilterState {
@@ -112,26 +112,36 @@ export const useFilterStore = create<FilterState>()(
         set(
           (state) => {
             let newSelectedTeams;
-            const teamList = Object.values(E_Team);
+            const teamList = E_TeamList.map(([id]) => id);
+            console.log(team, teamList);
 
-            if (team === 'All') {
-              newSelectedTeams = state.selectedTeams.includes('All')
+            if (team === 'all') {
+              // "All"을 클릭하면 토글 방식으로 동작
+              newSelectedTeams = state.selectedTeams.includes('all')
                 ? []
-                : ['All', ...teamList];
+                : ['all', ...teamList];
             } else {
-              const withoutAll = state.selectedTeams.filter((t) => t !== 'All');
-
+              // 개별 팀을 클릭할 때
               if (state.selectedTeams.includes(team)) {
-                newSelectedTeams = withoutAll.filter((t) => t !== team);
+                // 이미 선택된 팀을 클릭하면 해제
+                const withoutTeam = state.selectedTeams.filter(
+                  (t) => t !== team
+                );
+                // "All"이 선택되어 있었다면 "All"도 함께 해제
+                newSelectedTeams = withoutTeam.filter((t) => t !== 'all');
               } else {
+                // 선택되지 않은 팀을 클릭하면 추가
+                const withoutAll = state.selectedTeams.filter(
+                  (t) => t !== 'all'
+                );
                 const newList = [...withoutAll, team];
 
-                const allIndividualSelected = teamList.every(
-                  (t) => t === 'All' || newList.includes(t)
+                const allIndividualSelected = teamList.every((t) =>
+                  newList.includes(t)
                 );
 
                 newSelectedTeams = allIndividualSelected
-                  ? ['All', ...newList]
+                  ? ['all', ...newList]
                   : newList;
               }
             }
@@ -147,7 +157,7 @@ export const useFilterStore = create<FilterState>()(
       selectAllTeams: () =>
         set(
           () => ({
-            selectedTeams: ['All', ...Object.values(E_Team)],
+            selectedTeams: ['All', ...E_TeamList.map(([id]) => id)],
           }),
           false,
           'selectAllTeams'

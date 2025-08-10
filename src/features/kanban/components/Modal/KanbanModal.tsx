@@ -160,7 +160,7 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
   const upsertTable = async (payload: UpsertIssuePayload) => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_PROJECT_URL}/functions/v1/nettee-function`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/nettee-function`,
         {
           method: 'POST',
           headers: {

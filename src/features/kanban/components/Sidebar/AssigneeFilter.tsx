@@ -1,5 +1,9 @@
 // components/Sidebar/AssigneeFilter.tsx
-import { E_Team } from '../../constants/kanban';
+import { useEffect, useState } from 'react';
+
+import { Checkbox } from '@/shared/components/ui/checkbox';
+
+import { E_TeamList, fetchTeamList } from '../../constants/kanban';
 import { netteeMembers } from '../../constants/nettee';
 import { useFilterStore } from '../../store/filterStore';
 
@@ -13,14 +17,28 @@ export function AssigneeFilter() {
     toggleAssigneeAccordion,
   } = useFilterStore();
 
-  const teamList = Object.values(E_Team);
+  const [teamList, setTeamList] = useState<[string, string][]>(E_TeamList);
+
+  useEffect(() => {
+    const loadTeams = async () => {
+      const teams = await fetchTeamList();
+      setTeamList(teams);
+    };
+    loadTeams();
+  }, []);
+
+  const teamObjects = teamList.map(([id, name]) => ({ id, name }));
+
   const memberList = Object.values(netteeMembers).flat();
 
   const teamMembers = selectedTeams.includes('All')
     ? memberList
-    : selectedTeams.flatMap(
-        (team) => netteeMembers[team as keyof typeof netteeMembers]
-      );
+    : selectedTeams.flatMap((teamId) => {
+        const teamName = teamList.find(([id]) => id === teamId)?.[1];
+        return teamName
+          ? netteeMembers[teamName as keyof typeof netteeMembers]
+          : [];
+      });
 
   return (
     <div className="border-t border-[#dbdbdb] py-[20px]">
@@ -38,18 +56,26 @@ export function AssigneeFilter() {
         }}
       >
         <div className="flex flex-wrap gap-[8px] pt-[8px] pb-[16px]">
-          {teamList.map((team) => (
+          {teamObjects.map((team) => (
             <button
-              key={`${team}_button`}
+              key={`${team.id}_button`}
               type="button"
               className={`flex h-[28px] w-[60px] items-center justify-center rounded-[4px] ${
-                selectedTeams.includes(team)
+                selectedTeams.includes(team.id)
                   ? 'bg-[#0065FF] text-white'
                   : 'bg-[#ededed]'
               }`}
-              onClick={() => toggleTeam(team)}
+              onClick={() => {
+                console.log(
+                  'toggleTeam 호출값 ID: ',
+                  team.id,
+                  'Name: ',
+                  team.name
+                );
+                toggleTeam(team.id);
+              }}
             >
-              {team}
+              {team.name}
             </button>
           ))}
         </div>
@@ -58,11 +84,13 @@ export function AssigneeFilter() {
           {teamMembers.map((member, idx) => (
             <li key={`${idx + member}_assignee`} className="px-[8px] py-[6px]">
               <label className="flex items-center gap-[8px]">
-                <input
-                  type="checkbox"
-                  className="h-[18px] w-[18px] rounded-[4px]"
+                <Checkbox
+                  id={`checkbox-${member}`}
                   checked={selectedAssignees.includes(member)}
-                  onChange={() => toggleAssignee(member)}
+                  onCheckedChange={() => {
+                    console.log('toggleAssignee 호출값: ', member);
+                    toggleAssignee(member);
+                  }}
                 />
                 <div className="h-[20px] w-[20px] rounded-full bg-[#dbdbdb]"></div>
                 {member}

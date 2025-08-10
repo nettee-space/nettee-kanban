@@ -1,12 +1,26 @@
 // components/Sidebar/TeamFilter.tsx
-import { E_Team } from '../../constants/kanban';
+import { useEffect, useState } from 'react';
+
+import { Checkbox } from '@/shared/components/ui/checkbox';
+
+import { E_TeamList, fetchTeamList } from '../../constants/kanban';
 import { useFilterStore } from '../../store/filterStore';
 
 export function TeamFilter() {
   const { selectedTeams, teamAccordionOpen, toggleTeam, toggleTeamAccordion } =
     useFilterStore();
 
-  const allTeamList = Object.values(E_Team);
+  const [teamList, setTeamList] = useState<[string, string][]>(E_TeamList);
+
+  useEffect(() => {
+    const loadTeams = async () => {
+      const teams = await fetchTeamList();
+      setTeamList(teams);
+    };
+    loadTeams();
+  }, []);
+
+  const teamObjects = teamList.map(([id, name]) => ({ id, name }));
 
   return (
     <div className="border-t border-[#dbdbdb] py-[20px]">
@@ -20,17 +34,24 @@ export function TeamFilter() {
       <ul
         className={`overflow-hidden pt-[10px] ${teamAccordionOpen ? 'h-full' : 'h-0'}`}
       >
-        {allTeamList.map((team) => (
-          <li key={`${team}_team`} className="px-[8px] py-[6px]">
+        {teamObjects.map((team) => (
+          <li key={`${team.id}_team`} className="px-[8px] py-[6px]">
             <label className="flex items-center gap-[8px]">
-              <input
-                type="checkbox"
-                className="h-[18px] w-[18px] rounded-[4px]"
-                checked={selectedTeams.includes(team)}
-                onChange={() => toggleTeam(team)}
+              <Checkbox
+                id={`checkbox-${team}`}
+                checked={selectedTeams.includes(team.id)}
+                onCheckedChange={() => {
+                  console.log(
+                    'toggleTeam 호출값 ID:',
+                    team.id,
+                    'Name:',
+                    team.name
+                  );
+                  toggleTeam(team.id);
+                }}
               />
-              <span className={team === 'All' ? 'font-semibold' : ''}>
-                {team}
+              <span className={team.id === 'All' ? 'font-semibold' : ''}>
+                {team.name}
               </span>
             </label>
           </li>

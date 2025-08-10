@@ -1,5 +1,9 @@
 // components/Sidebar/LabelFilter.tsx
-import { dummyLabels } from '../../constants/kanban';
+import { useEffect, useState } from 'react';
+
+import { Label } from '@/shared/components/ui/label';
+
+import { dummyLabels, fetchTaskPriorities } from '../../constants/kanban';
 import { useFilterStore } from '../../store/filterStore';
 
 export function LabelFilter() {
@@ -10,12 +14,22 @@ export function LabelFilter() {
     toggleLabelAccordion,
   } = useFilterStore();
 
-  const allLabelList = dummyLabels;
+  const [list, setList] = useState<string[]>(dummyLabels); // 초기값
+
+  useEffect(() => {
+    const load = async () => {
+      const updatedList = await fetchTaskPriorities();
+      setList([...updatedList]); // 로컬 상태도 업데이트
+    };
+    load();
+  }, []);
+
+  const labelObjects = list.map((name) => ({ id: name, name }));
 
   return (
     <div className="border-t border-[#dbdbdb] py-[20px]">
       <div className="flex items-center justify-between">
-        <p>라벨</p>
+        <p>작업중요도</p>
         <button type="button" onClick={toggleLabelAccordion}>
           {labelAccordionOpen ? '▼' : '▲'}
         </button>
@@ -27,20 +41,24 @@ export function LabelFilter() {
         }`}
       >
         <div className="flex flex-wrap gap-[8px] p-[8px]">
-          {allLabelList.map((label, idx) => {
-            const isSelected = selectedLabels.includes(label);
+          {labelObjects.map((label) => {
+            const isSelected = selectedLabels.includes(label.id);
             return (
-              <span
-                key={`${idx + label}_label`}
-                onClick={() => toggleLabel(label)}
-                className={`text-xxl h-[24px] cursor-pointer rounded-full px-[12px] py-[2px] transition-colors ${
-                  isSelected
-                    ? 'bg-[#0065FF] text-white'
-                    : 'bg-[#ededed] text-black'
-                }`}
+              <Label
+                key={`${label.id}_label`}
+                onClick={() => {
+                  console.log(
+                    'toggleLabel 호출값 ID:',
+                    label.id,
+                    'Name:',
+                    label.name
+                  );
+                  toggleLabel(label.id);
+                }}
+                variant={isSelected ? 'default' : 'secondary'}
               >
-                {label}
-              </span>
+                {label.name}
+              </Label>
             );
           })}
         </div>
