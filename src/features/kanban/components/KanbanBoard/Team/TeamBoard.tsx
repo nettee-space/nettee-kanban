@@ -5,9 +5,10 @@ import { ColumnContainer } from './ColumnContainer';
 
 interface TeamBoardProps {
   teams: TeamDataModel;
+  addIssue?: (issueData: any) => void;
 }
 
-export function TeamBoard({ teams }: TeamBoardProps) {
+export function TeamBoard({ teams, addIssue }: TeamBoardProps) {
   return (
     <div className={`'h-full' flex flex-col gap-[8px] overflow-hidden`}>
       {Object.entries(teams).map(([team, progressMap]) => (
@@ -22,6 +23,7 @@ export function TeamBoard({ teams }: TeamBoardProps) {
                 team={team}
                 progress={progress}
                 issues={issues}
+                addIssue={addIssue}
               />
             ))}
           </div>

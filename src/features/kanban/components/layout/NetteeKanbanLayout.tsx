@@ -16,6 +16,7 @@ export function NetteeKanbanLayout() {
     loading,
     setPinnedIssues,
     setGroupedIssues,
+    addIssue,
   } = useKanbanData();
   const { filters, updateProjectFilter, updateTeamFilter } = useFilters();
   const { accordionMap, toggleAccordion, resetAccordion } = useAccordion();
@@ -124,6 +125,7 @@ export function NetteeKanbanLayout() {
         pinnedIssues={pinnedIssues}
         accordionMap={accordionMap}
         onAccordionToggle={toggleAccordion}
+        addIssue={addIssue}
         // onPin={handlePin}
         // onUnpin={handleUnpin}
       />

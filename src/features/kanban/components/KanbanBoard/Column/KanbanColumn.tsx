@@ -14,6 +14,7 @@ interface KanbanColumnProps {
   team: string;
   progress: string;
   issues: IssueData[];
+  addIssue?: (issueData: any) => void;
   // pinnedIssues: IssueData[];
   // onDragStart: (e: DragEvent, item: IssueData) => void;
   // onDragEnd: (
@@ -43,6 +44,7 @@ export function KanbanColumn({
   team,
   progress,
   issues,
+  addIssue,
   // pinnedIssues,
   // onPin,
   // onUnpin,
@@ -141,6 +143,7 @@ export function KanbanColumn({
           <KanbanModal
             item={modalItem}
             setModal={setModalItem}
+            addIssue={addIssue}
             // setIssues={setGroupedIssues}
           />,
           document.body

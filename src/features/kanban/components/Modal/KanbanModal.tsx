@@ -24,10 +24,10 @@ type SetState<T> = Dispatch<SetStateAction<T>>;
 interface ModalProps {
   item: Partial<IssueData>;
   setModal: SetState<Partial<IssueData> | null>;
-  // setIssues: SetState<GroupedIssues>;
+  addIssue?: (issueData: any) => void;
 }
 
-export function KanbanModal({ item, setModal }: ModalProps) {
+export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState<Record<string, string>>({});
@@ -79,30 +79,82 @@ export function KanbanModal({ item, setModal }: ModalProps) {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    // 이미 처리 중인 경우 중복 제출 방지
+    if (loading) {
+      return;
+    }
+    
     setLoading(true);
 
-    const getForm = new FormData(e.currentTarget);
-    const isNew = item.number === 0;
+    try {
+      const getForm = new FormData(e.currentTarget);
+      const isNew = !item.number || item.number === 0;
 
-    const payload = {
-      owner: 'nettee-space',
-      repo: getRepo(item),
-      issue_number: isNew ? undefined : item.number,
+      const title = getForm.get('title') as string;
+      const body = formData.body || markdown || item.body || '';
+      const progress = formData.progress || item.progress || 'TODO';
+      const project = item.project || 'Blolet';
+      const team = item.team || 'FE';
 
-      source: 'client',
-      action: isNew ? 'create' : 'update',
-      issue: {
-        title: getForm.get('title'),
-        body: formData.body ?? item.body,
-        assignees: ['revy7289'],
-        labels: [],
-        progress: formData.progress ?? item.progress,
-        sta_dt: formData.sta_dt ?? item.sta_dt,
-        end_dt: formData.end_dt ?? item.end_dt,
-      },
-    };
+      if (!title.trim()) {
+        alert('제목을 입력해주세요.');
+        return;
+      }
 
-    upsertTable(payload);
+      if (isNew && addIssue) {
+        // 새 이슈 생성
+        addIssue({
+          title: title.trim(),
+          body: body,
+          progress: progress,
+          project: project,
+          team: team,
+          sta_dt:
+            formData.sta_dt ||
+            (dateRange?.from ? dateRange.from.toISOString() : undefined),
+          end_dt:
+            formData.end_dt ||
+            (dateRange?.to ? dateRange.to.toISOString() : undefined),
+          assignees: ['revy7289'], // 기본 담당자
+          labels: [],
+          repo: getRepo(item),
+          task_priority: 'medium',
+        });
+
+        // 폼 초기화
+        setFormData({});
+        setMarkdown('');
+        setDateRange(undefined);
+        setFormToggle({});
+        setModal(null);
+      } else {
+        // 기존 방식 (수정)
+        const payload = {
+          owner: 'nettee-space',
+          repo: getRepo(item),
+          issue_number: item.number,
+          source: 'client',
+          action: 'update',
+          issue: {
+            title: title,
+            body: body,
+            assignees: ['revy7289'],
+            labels: [],
+            progress: progress,
+            sta_dt: formData.sta_dt ?? item.sta_dt,
+            end_dt: formData.end_dt ?? item.end_dt,
+          },
+        };
+
+        upsertTable(payload);
+      }
+    } catch (error) {
+      console.error('이슈 저장 중 오류:', error);
+      alert('이슈 저장 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const upsertTable = async (payload: UpsertIssuePayload) => {
@@ -481,7 +533,11 @@ export function KanbanModal({ item, setModal }: ModalProps) {
             type="submit"
             disabled={loading}
           >
-            {loading ? '처리 중...' : '추가하기'}
+            {loading
+              ? '처리 중...'
+              : !item.number || item.number === 0
+                ? '추가하기'
+                : '수정하기'}
           </button>
         </div>
       </form>

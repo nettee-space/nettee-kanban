@@ -10,6 +10,7 @@ interface KanbanBoardProps {
   pinnedIssues: GroupedIssues;
   accordionMap: Record<string, boolean>;
   onAccordionToggle: (key: string) => void;
+  addIssue?: (issueData: any) => void;
 
   // onPin: (
   //   project: string,
@@ -30,6 +31,7 @@ export function ProjectKanban({
   pinnedIssues,
   accordionMap,
   onAccordionToggle,
+  addIssue,
   // onPin,
   // onUnpin,
 }: KanbanBoardProps) {
@@ -44,11 +46,8 @@ export function ProjectKanban({
   };
 
   const handleToggleKanban = (key: string) => {
-    console.log(key);
     return setIsOpened((v) => !v);
   };
-
-  console.log(groupedIssues);
   return (
     <section className="flex h-full w-full flex-col gap-[16px] px-[40px] pt-[60px]">
       {Object.entries(groupedIssues).map(([project, teams]) => (
@@ -60,7 +59,7 @@ export function ProjectKanban({
             title={project}
           />
           {/* 팀별 칸반 보드들 */}
-          {isOpened && <TeamBoard teams={teams} />}
+          {isOpened && <TeamBoard teams={teams} addIssue={addIssue} />}
           <Divider />
         </Fragment>
       ))}

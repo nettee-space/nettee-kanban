@@ -5,7 +5,7 @@ export const netteeRepo = {
     [E_Team.lead]: ['blolet-lead'],
     [E_Team.pl]: ['blolet-pl'],
     [E_Team.ux]: ['blolet-ux'],
-    [E_Team.fe]: [''],
+    [E_Team.fe]: ['blolet-fe'],
     [E_Team.be]: ['nettee-blolet-backend'],
   },
   // Kanban: {
