@@ -128,6 +128,8 @@ export function KanbanColumn({
                 cardIndex: String(index),
               }}
               columnId={progress}
+              project={project}
+              team={team}
               isPinned={false}
               onDragStart={handleDragStart}
               // onPin={(_) => onPin(project, team, progress, item.id)}

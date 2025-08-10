@@ -10,12 +10,16 @@ interface KanbanCardProps {
     cardIndex: string;
   };
   columnId: string;
+  project: string;
+  team: string;
   isPinned: boolean;
   onDragStart: (
     e: DragEvent,
     cardId: string,
     columnId: string,
-    cardIndex: string
+    cardIndex: string,
+    project: string,
+    team: string
   ) => void;
   onPin?: (e: MouseEvent<HTMLImageElement>) => void;
   onOpenModal: () => void;
@@ -25,6 +29,8 @@ export function KanbanCard({
   item,
   isPinned,
   columnId,
+  project,
+  team,
   onDragStart,
   onPin,
   onOpenModal,
@@ -41,7 +47,9 @@ export function KanbanCard({
     >
       <div
         draggable="true"
-        onDragStart={(e) => onDragStart(e, item.id, columnId, item.cardIndex)}
+        onDragStart={(e) =>
+          onDragStart(e, item.id, columnId, item.cardIndex, project, team)
+        }
         className="cursor-grab px-[14px] py-[16px] active:cursor-grabbing active:bg-[#f5f5f5]"
       >
         <div className="flex items-center gap-[4px]">

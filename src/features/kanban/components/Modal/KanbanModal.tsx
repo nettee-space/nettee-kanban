@@ -79,12 +79,12 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     // 이미 처리 중인 경우 중복 제출 방지
     if (loading) {
       return;
     }
-    
+
     setLoading(true);
 
     try {
