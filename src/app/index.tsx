@@ -1,5 +1,5 @@
-import { KanbanLayout } from '@/features/kanban/components/KanbanLayout';
+import { NetteeKanbanLayout } from '@/features/kanban/components/layout/NetteeKanbanLayout';
 
 export function App() {
-  return <KanbanLayout />;
+  return <NetteeKanbanLayout />;
 }
