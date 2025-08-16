@@ -1,8 +1,10 @@
+import { CircleCheckIcon } from 'lucide-react';
+import { DragEvent, MouseEvent } from 'react';
+
 import Github from '@/assets/github.svg';
 import pinActive from '@/assets/pinActive.svg';
 import pinDisable from '@/assets/pinDisable.svg';
-import { CircleCheckIcon } from 'lucide-react';
-import { DragEvent, MouseEvent } from 'react';
+
 import { IssueData } from '../../../types/issues';
 
 interface KanbanCardProps {

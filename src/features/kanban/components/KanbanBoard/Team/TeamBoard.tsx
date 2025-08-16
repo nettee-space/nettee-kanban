@@ -1,5 +1,5 @@
-import { useDragAndDrop } from '@/features/kanban/hooks/useDragAndDrop';
 import { TeamDataModel } from '@/features/kanban/types/issues';
+
 import { KanbanColumn } from '../Column/KanbanColumn';
 import { ColumnContainer } from './ColumnContainer';
 

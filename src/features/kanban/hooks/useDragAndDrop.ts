@@ -1,6 +1,8 @@
 // hooks/useDragAndDrop.ts;
-import { useIssueStore } from '@/store/issueStore';
 import { DragEvent } from 'react';
+
+import { useIssueStore } from '@/store/issueStore';
+
 import { KanbanProgress } from '../types/issues';
 
 export const useDragAndDrop = () => {

@@ -1,5 +1,7 @@
-import { useIssueStore } from '@/store/issueStore';
 import { useEffect, useState } from 'react';
+
+import { useIssueStore } from '@/store/issueStore';
+
 import { GroupedIssues, IssueData, KanbanProgress } from '../types/issues';
 
 /**

@@ -11,30 +11,21 @@ interface FilterState {
   selectedAssignees: string[];
   selectedLabels: string[];
 
-  projectAccordionOpen: boolean;
-  teamAccordionOpen: boolean;
-  assigneeAccordionOpen: boolean;
-  labelAccordionOpen: boolean;
-
   toggleProject: (project: string) => void;
   clearProjects: () => void;
   selectAllProjects: () => void;
-  toggleProjectAccordion: () => void;
 
   toggleTeam: (team: string) => void;
   clearTeams: () => void;
   selectAllTeams: () => void;
-  toggleTeamAccordion: () => void;
 
   toggleAssignee: (assignee: string) => void;
   clearAssignees: () => void;
   selectAllAssignees: () => void;
-  toggleAssigneeAccordion: () => void;
 
   toggleLabel: (label: string) => void;
   clearLabels: () => void;
   selectAllLabels: () => void;
-  toggleLabelAccordion: () => void;
 
   resetAllFilters: () => void;
 
@@ -48,9 +39,6 @@ export const useFilterStore = create<FilterState>()(
       selectedTeams: [],
       selectedAssignees: [],
       selectedLabels: [],
-      projectAccordionOpen: true,
-      teamAccordionOpen: true,
-      assigneeAccordionOpen: true,
 
       toggleProject: (project) =>
         set(
@@ -97,15 +85,6 @@ export const useFilterStore = create<FilterState>()(
           }),
           false,
           'selectAllProjects'
-        ),
-
-      toggleProjectAccordion: () =>
-        set(
-          (state) => ({
-            projectAccordionOpen: !state.projectAccordionOpen,
-          }),
-          false,
-          'toggleProjectAccordion'
         ),
 
       toggleTeam: (team) =>
@@ -163,15 +142,6 @@ export const useFilterStore = create<FilterState>()(
           'selectAllTeams'
         ),
 
-      toggleTeamAccordion: () =>
-        set(
-          (state) => ({
-            teamAccordionOpen: !state.teamAccordionOpen,
-          }),
-          false,
-          'toggleTeamAccordion'
-        ),
-
       toggleAssignee: (assignee) =>
         set(
           (state) => {
@@ -221,15 +191,6 @@ export const useFilterStore = create<FilterState>()(
           'selectAllAssignees'
         ),
 
-      toggleAssigneeAccordion: () =>
-        set(
-          (state) => ({
-            assigneeAccordionOpen: !state.assigneeAccordionOpen,
-          }),
-          false,
-          'toggleAssigneeAccordion'
-        ),
-
       toggleLabel: (label) =>
         set((state) => {
           const exists = state.selectedLabels.includes(label);
@@ -241,8 +202,6 @@ export const useFilterStore = create<FilterState>()(
 
       clearLabels: () => set({ selectedLabels: [] }),
       selectAllLabels: () => set({ selectedLabels: [...dummyLabels] }),
-      toggleLabelAccordion: () =>
-        set((state) => ({ labelAccordionOpen: !state.labelAccordionOpen })),
 
       resetAllFilters: () =>
         set(
@@ -250,9 +209,6 @@ export const useFilterStore = create<FilterState>()(
             selectedProjects: [],
             selectedTeams: [],
             selectedAssignees: [],
-            projectAccordionOpen: true,
-            teamAccordionOpen: true,
-            assigneeAccordionOpen: true,
           },
           false,
           'resetAllFilters'

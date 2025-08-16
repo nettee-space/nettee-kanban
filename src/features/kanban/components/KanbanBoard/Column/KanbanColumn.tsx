@@ -1,9 +1,11 @@
 // components/KanbanBoard/KanbanColumn.tsx
-import { useDragAndDrop } from '@/features/kanban/hooks/useDragAndDrop';
-import { Divider } from '@/shared/components/ui/divider';
 import { PlusIcon } from 'lucide-react';
 import { Fragment, useState } from 'react';
 import { createPortal } from 'react-dom';
+
+import { useDragAndDrop } from '@/features/kanban/hooks/useDragAndDrop';
+import { Divider } from '@/shared/components/ui/divider';
+
 import { kanbanStyleMap } from '../../../constants/kanban';
 import { IssueData } from '../../../types/issues';
 import { KanbanModal } from '../../Modal/KanbanModal';

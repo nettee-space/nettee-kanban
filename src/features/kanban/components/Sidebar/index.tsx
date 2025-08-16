@@ -18,16 +18,9 @@ interface SidebarProps {
   onReset: () => void;
 }
 
-export function Sidebar({
-  filters,
-  accordionMap,
-  onProjectToggle,
-  onTeamToggle,
-  onAccordionToggle,
-  onReset,
-}: SidebarProps) {
+export function Sidebar({ onReset }: SidebarProps) {
   return (
-    <aside className="flex w-[240px] flex-col bg-[#f8f8f8] p-[20px]">
+    <aside className="flex min-h-screen w-[240px] flex-col bg-[#f8f8f8] p-[20px]">
       {/* 헤더 섹션 */}
       <div className="flex flex-col gap-[40px]">
         <h1 className="text-center text-[24px] font-bold">Nettee's KanBan</h1>
@@ -55,10 +48,7 @@ export function Sidebar({
       <TeamFilter />
       <AssigneeFilter />
       <LabelFilter />
-      <ViewOptions
-        isOpen={accordionMap['sidebar-more']}
-        onAccordionToggle={() => onAccordionToggle('sidebar-more')}
-      />
+      <ViewOptions />
     </aside>
   );
 }

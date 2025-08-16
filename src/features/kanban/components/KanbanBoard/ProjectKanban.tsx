@@ -1,6 +1,8 @@
 // components/KanbanBoard/index.tsx
-import { Divider } from '@/shared/components/ui/divider';
 import { Fragment, useState } from 'react';
+
+import { Divider } from '@/shared/components/ui/divider';
+
 import { GroupedIssues, KanbanProgress } from '../../types/issues';
 import { ProjectHeader } from './ProjectHeader';
 import { TeamBoard } from './Team/TeamBoard';

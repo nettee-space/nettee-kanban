@@ -1,5 +1,6 @@
-import { IssueData } from '@/features/kanban/types/issues';
 import { create } from 'zustand';
+
+import { IssueData } from '@/features/kanban/types/issues';
 interface IssueState {
   issues: IssueData[];
   loading: boolean;
