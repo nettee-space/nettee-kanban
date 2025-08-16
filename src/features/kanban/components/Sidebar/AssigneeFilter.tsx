@@ -1,5 +1,5 @@
 // components/Sidebar/AssigneeFilter.tsx
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 import {
   Accordion,
@@ -12,23 +12,22 @@ import { Checkbox } from '@/shared/components/ui/checkbox';
 import { Button } from '@/shared/components/ui/button';
 import { Icon, ICONS } from '@/shared/components/ui/icon';
 import { cn } from '@/shared/lib/utils/cn';
-import { E_TeamList, fetchTeamList } from '../../constants/kanban';
 import { netteeMembers } from '../../constants/nettee';
 import { useFilterStore } from '../../store/filterStore';
 
 export function AssigneeFilter() {
-  const { selectedTeams, selectedAssignees, toggleTeam, toggleAssignee } =
-    useFilterStore();
-
-  const [teamList, setTeamList] = useState<[string, string][]>(E_TeamList);
+  const { 
+    selectedTeams, 
+    selectedAssignees, 
+    toggleTeam, 
+    toggleAssignee,
+    teamList,
+    loadTeamList 
+  } = useFilterStore();
 
   useEffect(() => {
-    const loadTeams = async () => {
-      const teams = await fetchTeamList();
-      setTeamList(teams);
-    };
-    loadTeams();
-  }, []);
+    loadTeamList();
+  }, [loadTeamList]);
 
   const teamObjects = teamList.map(([id, name]) => ({ id, name }));
 
@@ -68,15 +67,7 @@ export function AssigneeFilter() {
                       ? 'bg-primary-12 text-white'
                       : 'text-black-7 bg-[#ededed]'
                   }`}
-                  onClick={() => {
-                    console.log(
-                      'toggleTeam 호출값 ID: ',
-                      team.id,
-                      'Name: ',
-                      team.name
-                    );
-                    toggleTeam(team.id);
-                  }}
+                  onClick={() => toggleTeam(team.id)}
                 >
                   {team.name}
                 </Button>

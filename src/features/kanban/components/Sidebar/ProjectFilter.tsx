@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 import {
   Accordion,
@@ -9,24 +9,16 @@ import {
 import { Checkbox } from '@/shared/components/ui/checkbox';
 
 import { cn } from '@/shared/lib/utils/cn';
-import { fetchProjectList, projectList } from '../../constants/kanban';
 import { useFilterStore } from '../../store/filterStore';
 
 export function ProjectFilter() {
-  const { selectedProjects, toggleProject } = useFilterStore();
+  const { selectedProjects, toggleProject, projectList, loadProjectList } = useFilterStore();
 
-  const [list, setList] = useState<string[]>(projectList); // 초기값
-
-  // Supabase에서 fetch + projectList에 merge + local set
   useEffect(() => {
-    const load = async () => {
-      const updatedList = await fetchProjectList(); // projectList 내부도 갱신됨
-      setList([...updatedList]); // 로컬 상태도 업데이트
-    };
-    load();
-  }, []);
+    loadProjectList();
+  }, [loadProjectList]);
 
-  const projectObjects = list.map((name) => ({ id: name, name }));
+  const projectObjects = projectList.map(([id, name]) => ({ id, name }));
 
   return (
     <div className="border-t border-[#dbdbdb] py-[20px]">

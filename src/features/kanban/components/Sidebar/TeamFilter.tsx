@@ -1,5 +1,5 @@
 // components/Sidebar/TeamFilter.tsx
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 import {
   Accordion,
@@ -10,21 +10,14 @@ import {
 import { Checkbox } from '@/shared/components/ui/checkbox';
 
 import { cn } from '@/shared/lib/utils/cn';
-import { E_TeamList, fetchTeamList } from '../../constants/kanban';
 import { useFilterStore } from '../../store/filterStore';
 
 export function TeamFilter() {
-  const { selectedTeams, toggleTeam } = useFilterStore();
-
-  const [teamList, setTeamList] = useState<[string, string][]>(E_TeamList);
+  const { selectedTeams, toggleTeam, teamList, loadTeamList } = useFilterStore();
 
   useEffect(() => {
-    const loadTeams = async () => {
-      const teams = await fetchTeamList();
-      setTeamList(teams);
-    };
-    loadTeams();
-  }, []);
+    loadTeamList();
+  }, [loadTeamList]);
 
   const teamObjects = teamList.map(([id, name]) => ({ id, name }));
 
