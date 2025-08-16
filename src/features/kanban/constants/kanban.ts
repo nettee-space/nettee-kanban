@@ -1,13 +1,5 @@
 import { supabaseUtils } from '@/supabase/supabaseUtil';
 
-export enum E_Team {
-  all = 'All',
-  lead = 'Lead',
-  pl = 'PL',
-  fe = 'FE',
-  be = 'BE',
-  ux = 'UXUI',
-}
 
 // FilterStore의 기본값과 동일한 기본 팀 목록
 export const DEFAULT_TEAM_LIST: [string, string][] = [['All', '전체']];
@@ -34,7 +26,10 @@ export const fetchTeamList = async (): Promise<[string, string][]> => {
 export const sidebarList = ['project', 'team', 'assignee', 'label', 'more'];
 
 // FilterStore의 기본값과 동일한 기본 프로젝트 목록
-export const DEFAULT_PROJECT_LIST: [string, string][] = [['All', '전체'], ['Blolet', 'Blolet']];
+export const DEFAULT_PROJECT_LIST: [string, string][] = [
+  ['All', '전체'],
+  ['Blolet', 'Blolet'],
+];
 
 export const fetchProjectList = async (): Promise<[string, string][]> => {
   try {

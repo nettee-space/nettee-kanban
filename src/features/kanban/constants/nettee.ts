@@ -1,12 +1,10 @@
-import { E_Team } from './kanban';
-
 export const netteeRepo = {
   Blolet: {
-    [E_Team.lead]: ['blolet-lead'],
-    [E_Team.pl]: ['blolet-pl'],
-    [E_Team.ux]: ['blolet-ux'],
-    [E_Team.fe]: ['blolet-fe'],
-    [E_Team.be]: ['nettee-blolet-backend'],
+    Lead: ['blolet-lead'],
+    PL: ['blolet-pl'],
+    UXUI: ['blolet-ux'],
+    FE: ['blolet-fe'],
+    BE: ['nettee-blolet-backend'],
   },
   // Kanban: {
   //   [E_Team.lead]: ['kanban-lead'],
@@ -32,10 +30,10 @@ export const netteeRepo = {
 } as const;
 
 export const netteeMembers = {
-  [E_Team.lead]: ['강민성'],
-  [E_Team.pl]: ['권기혁'],
-  [E_Team.ux]: ['최원비', '신정연', '장은영', '박지성'],
-  [E_Team.fe]: [
+  Lead: ['강민성'],
+  PL: ['권기혁'],
+  UXUI: ['최원비', '신정연', '장은영', '박지성'],
+  FE: [
     '나선오',
     '유상협',
     '김병제',
@@ -49,7 +47,7 @@ export const netteeMembers = {
     '송문혁',
     '김동구',
   ],
-  [E_Team.be]: [
+  BE: [
     '박경우',
     '신인수',
     '신진규',

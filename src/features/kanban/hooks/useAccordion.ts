@@ -1,16 +1,17 @@
 // hooks/useAccordion.ts
 import { useState } from 'react';
-import { projectList, sidebarList } from '../constants/kanban';
+import { sidebarList } from '../constants/kanban';
+import { useFilterStore } from '../store/filterStore';
 
-const createInitialAccordionMap = (): Record<string, boolean> => {
+const createInitialAccordionMap = (projectList: [string, string][]): Record<string, boolean> => {
   const initSidebar = Object.fromEntries(
     sidebarList.map((item) => [`sidebar-${item}`, true])
   );
 
   const initKanban = Object.fromEntries(
     projectList
-      .filter((item) => item !== 'All')
-      .map((item) => [`kanban-${item}`, true])
+      .filter(([id]) => id !== 'All')
+      .map(([id]) => [`kanban-${id}`, true])
   );
 
   return {
@@ -20,7 +21,8 @@ const createInitialAccordionMap = (): Record<string, boolean> => {
 };
 
 export const useAccordion = () => {
-  const [accordionMap, setAccordionMap] = useState(createInitialAccordionMap);
+  const { projectList } = useFilterStore();
+  const [accordionMap, setAccordionMap] = useState(() => createInitialAccordionMap(projectList));
 
   const toggleAccordion = (key: string) => {
     setAccordionMap((prev) => ({
@@ -30,7 +32,7 @@ export const useAccordion = () => {
   };
 
   const resetAccordion = () => {
-    setAccordionMap(createInitialAccordionMap);
+    setAccordionMap(createInitialAccordionMap(projectList));
   };
 
   const openAccordion = (key: string) => {
