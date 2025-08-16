@@ -7,10 +7,14 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/shared/components/ui/accordion';
-import { Label } from '@/shared/components/ui/label';
 
-import { dummyLabels, fetchTaskPriorities } from '../../constants/kanban';
+import {
+  dummyLabels,
+  fetchTaskPriorities,
+  getStateKeyFromLabel,
+} from '../../constants/kanban';
 import { useFilterStore } from '../../store/filterStore';
+import { StateLabel } from '../StateLabel';
 
 export function LabelFilter() {
   const { selectedLabels, toggleLabel } = useFilterStore();
@@ -36,7 +40,7 @@ export function LabelFilter() {
         className="w-full"
       >
         <AccordionItem value="label" className="border-none">
-          <AccordionTrigger className="py-0 text-3xl hover:no-underline">
+          <AccordionTrigger className="text-black-8 py-0 text-xl font-semibold hover:no-underline">
             <p>라벨 선택</p>
           </AccordionTrigger>
           <AccordionContent className="overflow-visible pt-[10px] pb-0 text-2xl">
@@ -44,22 +48,16 @@ export function LabelFilter() {
               <div className="flex flex-wrap gap-[8px] p-[8px]">
                 {labelObjects.map((label) => {
                   const isSelected = selectedLabels.includes(label.id);
+                  const stateKey = getStateKeyFromLabel(label.name);
                   return (
-                    <Label
+                    <StateLabel
                       key={`${label.id}_label`}
-                      onClick={() => {
-                        console.log(
-                          'toggleLabel 호출값 ID:',
-                          label.id,
-                          'Name:',
-                          label.name
-                        );
-                        toggleLabel(label.id);
-                      }}
-                      variant={isSelected ? 'default' : 'secondary'}
+                      state={stateKey}
+                      onClick={() => toggleLabel(label.id)}
+                      selected={isSelected}
                     >
                       {label.name}
-                    </Label>
+                    </StateLabel>
                   );
                 })}
               </div>

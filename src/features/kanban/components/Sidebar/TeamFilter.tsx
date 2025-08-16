@@ -9,6 +9,7 @@ import {
 } from '@/shared/components/ui/accordion';
 import { Checkbox } from '@/shared/components/ui/checkbox';
 
+import { cn } from '@/shared/lib/utils/cn';
 import { E_TeamList, fetchTeamList } from '../../constants/kanban';
 import { useFilterStore } from '../../store/filterStore';
 
@@ -36,33 +37,41 @@ export function TeamFilter() {
         className="w-full"
       >
         <AccordionItem value="team" className="border-none">
-          <AccordionTrigger className="py-0 text-3xl hover:no-underline">
+          <AccordionTrigger className="text-black-8 py-0 text-xl font-semibold hover:no-underline">
             <p>팀 선택</p>
           </AccordionTrigger>
           <AccordionContent className="overflow-visible pt-[10px] pb-0 text-2xl">
             <ul>
-              {teamObjects.map((team) => (
-                <li key={`${team.id}_team`} className="px-[8px] py-[6px]">
-                  <label className="flex items-center gap-[8px]">
-                    <Checkbox
-                      id={`checkbox-${team}`}
-                      checked={selectedTeams.includes(team.id)}
-                      onCheckedChange={() => {
-                        console.log(
-                          'toggleTeam 호출값 ID:',
-                          team.id,
-                          'Name:',
-                          team.name
-                        );
-                        toggleTeam(team.id);
-                      }}
-                    />
-                    <span className={team.id === 'All' ? 'font-semibold' : ''}>
-                      {team.name}
-                    </span>
-                  </label>
-                </li>
-              ))}
+              {teamObjects.map((team) => {
+                const checked = selectedTeams.includes(team.id);
+                return (
+                  <li key={`${team.id}_team`} className="px-[8px] py-[6px]">
+                    <label className="flex items-center gap-[8px]">
+                      <Checkbox
+                        id={`checkbox-${team}`}
+                        checked={checked}
+                        onCheckedChange={() => {
+                          console.log(
+                            'toggleTeam 호출값 ID:',
+                            team.id,
+                            'Name:',
+                            team.name
+                          );
+                          toggleTeam(team.id);
+                        }}
+                      />
+                      <span
+                        className={cn(
+                          'font-medium',
+                          checked ? 'text-black-13' : 'text-black-7'
+                        )}
+                      >
+                        {team.name}
+                      </span>
+                    </label>
+                  </li>
+                );
+              })}
             </ul>
           </AccordionContent>
         </AccordionItem>

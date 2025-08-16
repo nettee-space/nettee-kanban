@@ -1,4 +1,6 @@
 // components/Sidebar/index.tsx
+import { Button } from '@/shared/components/ui/button';
+import { Icon, ICONS } from '@/shared/components/ui/icon';
 import { AssigneeFilter } from './AssigneeFilter';
 import { LabelFilter } from './LabelFilter';
 import { ProjectFilter } from './ProjectFilter';
@@ -33,14 +35,16 @@ export function Sidebar({ onReset }: SidebarProps) {
 
       {/* 필터 제어 섹션 */}
       <div className="flex items-center justify-between pt-[20px] pb-[10px]">
-        <p className="py-[6px]">필터</p>
-        <button
+        <p className="text-black-8 text-xl font-semibold">필터</p>
+        <Button
+          variant="ghost"
           type="reset"
-          className="duration-200 hover:text-[#ff5555]"
+          className="text-black-7 flex cursor-pointer items-center text-xl font-semibold duration-200 hover:text-[#ff5555]"
           onClick={onReset}
         >
-          초기화
-        </button>
+          <Icon src={ICONS.refresh24} size={24} alt="reset" />
+          <p>초기화</p>
+        </Button>
       </div>
 
       {/* 필터 섹션들 */}

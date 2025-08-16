@@ -1,4 +1,5 @@
 import { CalendarIcon, XIcon } from 'lucide-react';
+import { Icon, ICONS } from '@/shared/components/ui/icon';
 import {
   ChangeEvent,
   Dispatch,
@@ -321,9 +322,11 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
                 >
                   <p>{formData.progress ?? item.progress}</p>
 
-                  <span className="text-[12px]">
-                    {formToggle['progress'] ? '▲' : '▼'}
-                  </span>
+                  <Icon 
+                    src={formToggle['progress'] ? ICONS.up20 : ICONS.down20}
+                    size={16}
+                    alt={formToggle['progress'] ? 'collapse' : 'expand'}
+                  />
                 </div>
               </div>
 
@@ -399,9 +402,11 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
                 >
                   <p>선택</p>
 
-                  <span className="text-[12px]">
-                    {formToggle['template'] ? '▲' : '▼'}
-                  </span>
+                  <Icon 
+                    src={formToggle['template'] ? ICONS.up20 : ICONS.down20}
+                    size={16}
+                    alt={formToggle['template'] ? 'collapse' : 'expand'}
+                  />
                 </div>
               </div>
 
@@ -427,9 +432,11 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
                 >
                   <p>!! TODO 아직 안함</p>
 
-                  <span className="text-[12px]">
-                    {formToggle['github'] ? '▲' : '▼'}
-                  </span>
+                  <Icon 
+                    src={formToggle['github'] ? ICONS.up20 : ICONS.down20}
+                    size={16}
+                    alt={formToggle['github'] ? 'collapse' : 'expand'}
+                  />
                 </div>
               </div>
 
@@ -477,9 +484,11 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
                 >
                   <p>!! TODO 아직 안함</p>
 
-                  <span className="text-[12px]">
-                    {formToggle['assignee'] ? '▲' : '▼'}
-                  </span>
+                  <Icon 
+                    src={formToggle['assignee'] ? ICONS.up20 : ICONS.down20}
+                    size={16}
+                    alt={formToggle['assignee'] ? 'collapse' : 'expand'}
+                  />
                 </div>
 
                 <p className="w-full max-w-[52px] text-[14px] text-[#646464]">
@@ -507,9 +516,11 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
                 >
                   <p>!! TODO 아직 안함</p>
 
-                  <span className="text-[12px]">
-                    {formToggle['label'] ? '▲' : '▼'}
-                  </span>
+                  <Icon 
+                    src={formToggle['label'] ? ICONS.up20 : ICONS.down20}
+                    size={16}
+                    alt={formToggle['label'] ? 'collapse' : 'expand'}
+                  />
                 </div>
 
                 <p className="w-full max-w-[52px] text-[14px] text-[#646464]">

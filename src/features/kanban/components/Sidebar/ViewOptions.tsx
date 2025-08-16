@@ -17,7 +17,7 @@ export function ViewOptions() {
         className="w-full"
       >
         <AccordionItem value="view-options" className="border-none">
-          <AccordionTrigger className="py-0 text-3xl hover:no-underline">
+          <AccordionTrigger className="text-black-8 py-0 text-xl font-semibold hover:no-underline">
             <p>보기</p>
           </AccordionTrigger>
           <AccordionContent className="overflow-visible pt-[10px] pb-0 text-2xl">
