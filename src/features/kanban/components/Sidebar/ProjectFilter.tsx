@@ -12,7 +12,8 @@ import { cn } from '@/shared/lib/utils/cn';
 import { useFilterStore } from '../../store/filterStore';
 
 export function ProjectFilter() {
-  const { selectedProjects, toggleProject, projectList, loadProjectList } = useFilterStore();
+  const { selectedProjects, toggleProject, projectList, loadProjectList } =
+    useFilterStore();
 
   useEffect(() => {
     loadProjectList();
@@ -38,7 +39,7 @@ export function ProjectFilter() {
                 const checked = selectedProjects.includes(project.id);
                 return (
                   <li
-                    key={`${project.id}_project`}
+                    key={`${project.name}_project`}
                     className="px-[8px] py-[6px]"
                   >
                     <label className="flex items-center gap-[8px]">

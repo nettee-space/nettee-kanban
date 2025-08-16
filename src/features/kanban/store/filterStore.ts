@@ -2,12 +2,12 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { 
-  dummyLabels, 
-  fetchTeamList, 
-  fetchProjectList,
+import {
+  DEFAULT_PROJECT_LIST,
   DEFAULT_TEAM_LIST,
-  DEFAULT_PROJECT_LIST 
+  dummyLabels,
+  fetchProjectList,
+  fetchTeamList,
 } from '../constants/kanban';
 import { netteeMembers } from '../constants/nettee';
 
@@ -109,9 +109,9 @@ export const useFilterStore = create<FilterState>()(
         set(
           (state) => {
             let newSelectedTeams;
-            const teamList = state.teamList.map(([id]) => id).filter(
-              (id: string) => id !== 'All'
-            );
+            const teamList = state.teamList
+              .map(([id]) => id)
+              .filter((id: string) => id !== 'All');
 
             if (team === 'All') {
               // "All"을 클릭하면 토글 방식으로 동작
