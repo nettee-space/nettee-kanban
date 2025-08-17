@@ -1,175 +1,101 @@
-import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
 
-import { supabase } from '@/shared/lib/supa-client';
+import { useIssueStore } from '@/store/issueStore';
 
-import { netteeRepo } from '../constants/nettee';
 import { GroupedIssues, IssueData, KanbanProgress } from '../types/issues';
 
+/**
+ * 칸반에서 사용할 이슈들과 관리하는 함수들을 제공하는 hook
+ * zustand에 정의된 이슈들과 함수들을 사용
+ */
 export const useKanbanData = () => {
   const [groupedIssues, setGroupedIssues] = useState<GroupedIssues>({});
   const [pinnedIssues, setPinnedIssues] = useState<GroupedIssues>({});
   const [loading, setLoading] = useState(true);
 
-  // *****************************************************************
-  // constants에 등록된 이름으로 supabase를 전부 순회하여 테이블 가져오는 함수
-  // *****************************************************************
-  const fetchTableData = async (table: string): Promise<IssueData[]> => {
-    if (table === '') return [];
+  const { createIssue, issues, loadInitialData } = useIssueStore();
 
-    const { data, error } = await supabase
-      .from(table)
-      .select('*')
-      .order('updated_at', { ascending: false });
-    if (error) {
-      console.error(`Error in table: ${table}`);
-      return [];
-    }
+  // 컴포넌트 마운트 시 초기 데이터 로딩
+  useEffect(() => {
+    loadInitialData();
+  }, [loadInitialData]);
 
-    return data ?? [];
-  };
+  // zustand store의 issues를 그룹 구조로 변환
+  const convertIssuesToGrouped = (issues: IssueData[]): GroupedIssues => {
+    const grouped: GroupedIssues = {};
 
-  const promiseAllIssue = async (): Promise<IssueData[]> => {
-    const promiseBuffer: Promise<IssueData[]>[] = [];
+    issues.forEach((issue) => {
+      const { project, team, progress } = issue;
 
-    for (const [projectName, teamObj] of Object.entries(netteeRepo)) {
-      for (const [teamName, tableList] of Object.entries(teamObj)) {
-        for (const tableName of tableList) {
-          const promise = fetchTableData(tableName).then((rows) => {
-            const tagged = rows.map((row) => ({
-              ...row,
-              project: projectName,
-              team: teamName,
-              repo: ['blolet', 'kanban', 'onboard'].some((prefix) =>
-                tableName.startsWith(prefix)
-              )
-                ? ''
-                : tableName,
-            }));
-
-            return tagged;
-          });
-
-          promiseBuffer.push(promise);
-        }
+      // 프로젝트 초기화
+      if (!grouped[project]) {
+        grouped[project] = {};
       }
-    }
 
-    const resolve = await Promise.all(promiseBuffer);
-    return resolve.flat();
-  };
-
-  const groupIssuesByProgress = (data: IssueData[]): GroupedIssues => {
-    const result: GroupedIssues = {};
-
-    for (const [projectName, teamObj] of Object.entries(netteeRepo)) {
-      result[projectName] = {};
-
-      for (const [teamName] of Object.entries(teamObj)) {
-        result[projectName][teamName] = {
+      // 팀 초기화
+      if (!grouped[project][team]) {
+        grouped[project][team] = {
           TODO: [],
           DOING: [],
           DONE: [],
         };
       }
-    }
 
-    for (const issue of data) {
-      const projectName = issue.project;
-      const teamName = issue.team;
-      const progress = (issue.progress ?? 'TODO') as KanbanProgress;
+      // 이슈를 해당 progress에 추가
+      grouped[project][team][progress as KanbanProgress].push(issue);
+    });
 
-      result[projectName][teamName][progress].push(issue);
-    }
-
-    return result;
+    return grouped;
   };
 
-  // ************************************************************
-  // 슈퍼베이스 실시간 통신용 채널 오픈 + 페이로드 가공하여 신규상태로 갱신
-  // ************************************************************
-  const setupRealtimeChannel = () => {
-    const channel = supabase
-      .channel('realtime-kanban')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public' },
-        (payload: RealtimePostgresChangesPayload<IssueData>) => {
-          console.log('Realtime Change:', payload);
+  // zustand store 변경 시 groupedIssues 업데이트
+  useEffect(() => {
+    const storeGroupedIssues = convertIssuesToGrouped(issues);
+    setGroupedIssues(storeGroupedIssues);
+  }, [issues]);
 
-          const issue = payload.new as IssueData;
-          const table = payload.table as string;
+  const addIssue = (issueData: {
+    title: string;
+    body: string;
+    progress: KanbanProgress;
+    project: string;
+    team: string;
+    sta_dt?: string;
+    end_dt?: string;
+    assignees?: string[];
+    labels?: string[];
+    repo?: string;
+    task_priority?: string;
+  }) => {
+    // zustand store에만 이슈 생성 (단일 소스)
+    const newIssue = createIssue({
+      title: issueData.title,
+      body: issueData.body,
+      progress: issueData.progress,
+      project: issueData.project,
+      team: issueData.team,
+      sta_dt: issueData.sta_dt || new Date().toISOString(),
+      end_dt: issueData.end_dt || new Date().toISOString(),
+      assignees: issueData.assignees || [],
+      labels: issueData.labels || [],
+      parent: '',
+      repo: issueData.repo || '',
+      task_priority: issueData.task_priority || 'medium',
+      html_url: `#issue-${Date.now()}`,
+      state: 'open',
+      pinned: false,
+    });
 
-          setGroupedIssues((prev) => {
-            const updated: GroupedIssues = { ...prev };
-
-            for (const [project, teams] of Object.entries(netteeRepo)) {
-              for (const [team, repos] of Object.entries(teams)) {
-                if (repos.includes(table)) {
-                  const progress = (issue.progress ?? 'TODO') as KanbanProgress;
-                  const status: KanbanProgress[] = ['TODO', 'DOING', 'DONE'];
-
-                  for (const key of status) {
-                    updated[project][team][key] = updated[project][team][
-                      key
-                    ].filter((i) => i.number !== issue.number);
-                  }
-
-                  updated[project][team][progress].unshift(issue);
-                  return updated;
-                }
-              }
-            }
-
-            return prev; // fallback
-          });
-        }
-      );
-
-    const trySubscribe = () => {
-      try {
-        channel.subscribe();
-      } catch (error) {
-        console.error('realtime connection failed', error);
-        alert('슈퍼베이스 리얼타임 미작동 중!!');
-      }
-    };
-
-    trySubscribe();
-
-    return () => {
-      channel.unsubscribe();
-    };
+    // useEffect가 자동으로 groupedIssues를 업데이트함
+    return newIssue;
   };
 
-  // ********************************************************
-  // 최초 로드할 때 모든 테이블 순회, 칸반 형태로 가공하여 state 등록
-  // ********************************************************
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        const getIssues = await promiseAllIssue();
-        const grouped = groupIssuesByProgress(getIssues);
-        setGroupedIssues(grouped);
-      } catch (e) {
-        console.log('failed to load kanban data:', e);
-      } finally {
-        setLoading(true);
-      }
-    };
-    loadData();
-  }, []);
-
-  useEffect(() => {
-    const cleanup = setupRealtimeChannel();
-    return cleanup;
-  }, []);
   return {
     groupedIssues,
     pinnedIssues,
     loading,
     setGroupedIssues,
     setPinnedIssues,
+    addIssue,
   };
 };

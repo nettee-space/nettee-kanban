@@ -1,4 +1,5 @@
 import { CalendarIcon, XIcon } from 'lucide-react';
+import { Icon, ICONS } from '@/shared/components/ui/icon';
 import {
   ChangeEvent,
   Dispatch,
@@ -17,22 +18,17 @@ import { Calendar } from '@/shared/components/ui/calendar';
 import { octokit } from '@/shared/lib/git-octokit';
 
 import { netteeRepo } from '../../constants/nettee';
-import {
-  GroupedIssues,
-  IssueData,
-  KanbanProgress,
-  UpsertIssuePayload,
-} from '../../types/issues';
+import { IssueData, UpsertIssuePayload } from '../../types/issues';
 
 type SetState<T> = Dispatch<SetStateAction<T>>;
 
 interface ModalProps {
   item: Partial<IssueData>;
   setModal: SetState<Partial<IssueData> | null>;
-  setIssues: SetState<GroupedIssues>;
+  addIssue?: (issueData: any) => void;
 }
 
-export function KanbanModal({ item, setModal, setIssues }: ModalProps) {
+export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState<Record<string, string>>({});
@@ -84,36 +80,88 @@ export function KanbanModal({ item, setModal, setIssues }: ModalProps) {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // 이미 처리 중인 경우 중복 제출 방지
+    if (loading) {
+      return;
+    }
+
     setLoading(true);
 
-    const getForm = new FormData(e.currentTarget);
-    const isNew = item.number === 0;
+    try {
+      const getForm = new FormData(e.currentTarget);
+      const isNew = !item.number || item.number === 0;
 
-    const payload = {
-      owner: 'nettee-space',
-      repo: getRepo(item),
-      issue_number: isNew ? undefined : item.number,
+      const title = getForm.get('title') as string;
+      const body = formData.body || markdown || item.body || '';
+      const progress = formData.progress || item.progress || 'TODO';
+      const project = item.project || 'Blolet';
+      const team = item.team || 'FE';
 
-      source: 'client',
-      action: isNew ? 'create' : 'update',
-      issue: {
-        title: getForm.get('title'),
-        body: formData.body ?? item.body,
-        assignees: ['revy7289'],
-        labels: [],
-        progress: formData.progress ?? item.progress,
-        sta_dt: formData.sta_dt ?? item.sta_dt,
-        end_dt: formData.end_dt ?? item.end_dt,
-      },
-    };
+      if (!title.trim()) {
+        alert('제목을 입력해주세요.');
+        return;
+      }
 
-    upsertTable(payload);
+      if (isNew && addIssue) {
+        // 새 이슈 생성
+        addIssue({
+          title: title.trim(),
+          body: body,
+          progress: progress,
+          project: project,
+          team: team,
+          sta_dt:
+            formData.sta_dt ||
+            (dateRange?.from ? dateRange.from.toISOString() : undefined),
+          end_dt:
+            formData.end_dt ||
+            (dateRange?.to ? dateRange.to.toISOString() : undefined),
+          assignees: ['revy7289'], // 기본 담당자
+          labels: [],
+          repo: getRepo(item),
+          task_priority: 'medium',
+        });
+
+        // 폼 초기화
+        setFormData({});
+        setMarkdown('');
+        setDateRange(undefined);
+        setFormToggle({});
+        setModal(null);
+      } else {
+        // 기존 방식 (수정)
+        const payload = {
+          owner: 'nettee-space',
+          repo: getRepo(item),
+          issue_number: item.number,
+          source: 'client',
+          action: 'update',
+          issue: {
+            title: title,
+            body: body,
+            assignees: ['revy7289'],
+            labels: [],
+            progress: progress,
+            sta_dt: formData.sta_dt ?? item.sta_dt,
+            end_dt: formData.end_dt ?? item.end_dt,
+          },
+        };
+
+        upsertTable(payload);
+      }
+    } catch (error) {
+      console.error('이슈 저장 중 오류:', error);
+      alert('이슈 저장 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const upsertTable = async (payload: UpsertIssuePayload) => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_PROJECT_URL}/functions/v1/nettee-function`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/nettee-function`,
         {
           method: 'POST',
           headers: {
@@ -127,26 +175,27 @@ export function KanbanModal({ item, setModal, setIssues }: ModalProps) {
       const issue = await response.json();
       console.log(issue);
 
-      setIssues((prev) => {
-        const updated: GroupedIssues = { ...prev };
+      // TODO: zustand로 관리되는 로컬값 수정
+      // setIssues((prev) => {
+      //   const updated: GroupedIssues = { ...prev };
 
-        const project = item.project;
-        const team = item.team;
-        const progress = (item.progress ?? 'TODO') as KanbanProgress;
+      //   const project = item.project;
+      //   const team = item.team;
+      //   const progress = (item.progress ?? 'TODO') as KanbanProgress;
 
-        if (!project || !team || !progress) return prev; // fallback
+      //   if (!project || !team || !progress) return prev; // fallback
 
-        const status: KanbanProgress[] = ['TODO', 'DOING', 'DONE'];
-        for (const key of status) {
-          updated[project][team][key] = updated[project][team][key].filter(
-            (i) => i.number !== issue.data.number
-          );
-        }
+      //   const status: KanbanProgress[] = ['TODO', 'DOING', 'DONE'];
+      //   for (const key of status) {
+      //     updated[project][team][key] = updated[project][team][key].filter(
+      //       (i) => i.number !== issue.data.number
+      //     );
+      //   }
 
-        updated[project][team][progress].unshift(issue.data);
+      //   updated[project][team][progress].unshift(issue.data);
 
-        return updated;
-      });
+      //   return updated;
+      // });
 
       setModal(null);
     } catch (error) {
@@ -233,11 +282,11 @@ export function KanbanModal({ item, setModal, setIssues }: ModalProps) {
 
   return (
     <div
-      className="fixed inset-0 flex h-screen w-screen items-center justify-center bg-black/50 pr-[20px] pl-[10px]"
+      className="fixed inset-0 flex h-screen w-screen items-center justify-center overflow-auto bg-black/50 p-4"
       onClick={(e) => e.target === e.currentTarget && setModal(null)}
     >
       <form
-        className="flex max-w-[1028px] flex-col rounded-[8px] bg-white"
+        className="my-auto flex max-h-[calc(100vh-2rem)] w-full max-w-[1028px] flex-col overflow-hidden rounded-[8px] bg-white"
         onSubmit={handleSubmit}
       >
         {/* 모달 헤더 영역*/}
@@ -258,230 +307,248 @@ export function KanbanModal({ item, setModal, setIssues }: ModalProps) {
         </div>
 
         {/* 모달 편집 영역 */}
-        <div className="flex flex-wrap gap-[16px] p-[16px]">
-          {/* 진행상태 선택하는 드롭다운 메뉴*/}
-          <div className="relative flex w-full max-w-[420px] flex-col">
-            <div className="flex items-center gap-[8px]">
-              <p className="w-full max-w-[52px] text-[14px] text-[#646464]">
-                진행상태
-              </p>
+        <div className="flex-1 overflow-y-auto">
+          <div className="flex flex-wrap gap-[16px] p-[16px]">
+            {/* 진행상태 선택하는 드롭다운 메뉴*/}
+            <div className="relative flex w-full max-w-[420px] flex-col">
+              <div className="flex items-center gap-[8px]">
+                <p className="w-full max-w-[52px] text-[14px] text-[#646464]">
+                  진행상태
+                </p>
 
-              <div
-                className="flex h-[32px] w-full max-w-[360px] cursor-pointer items-center justify-between rounded-[4px] border-2 border-[#DBDBDB] px-[12px] py-[6px]"
-                onClick={() => handleFormToggle('progress')}
-              >
-                <p>{formData.progress ?? item.progress}</p>
+                <div
+                  className="flex h-[32px] w-full max-w-[360px] cursor-pointer items-center justify-between rounded-[4px] border-2 border-[#DBDBDB] px-[12px] py-[6px]"
+                  onClick={() => handleFormToggle('progress')}
+                >
+                  <p>{formData.progress ?? item.progress}</p>
 
-                <span className="text-[12px]">
-                  {formToggle['progress'] ? '▲' : '▼'}
-                </span>
-              </div>
-            </div>
-
-            {formToggle['progress'] && (
-              <div className="absolute top-[40px] z-10 flex w-full max-w-[360px] flex-col self-end rounded-[4px] border bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
-                {optionProgress.map((opt) => (
-                  <label
-                    key={opt}
-                    className="flex justify-between px-[12px] py-[6px] hover:bg-gray-50"
-                  >
-                    <p>{opt}</p>
-
-                    <input
-                      type="checkbox"
-                      value={opt}
-                      name="progress"
-                      onChange={handleFormData}
-                      checked={formData.progress === opt}
-                    />
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* 작업기간 선택하는 캘린더 메뉴 */}
-          <div className="relative flex w-full max-w-[560px] flex-col">
-            <div className="flex items-center gap-[8px]">
-              <p className="w-full max-w-[52px] text-[14px] text-[#646464]">
-                작업기간
-              </p>
-
-              <div
-                className="flex w-full cursor-pointer items-center gap-[8px]"
-                onClick={() => handleFormToggle('calendar')}
-              >
-                <div className="flex h-[32px] w-full items-center justify-between rounded-[4px] border-2 border-[#DBDBDB] px-[12px] py-[6px]">
-                  <p>{dateRange?.from?.toLocaleDateString() ?? '날짜 선택'}</p>
-                  <CalendarIcon size={16} />
-                </div>
-                <span>~</span>
-                <div className="flex h-[32px] w-full items-center justify-between rounded-[4px] border-2 border-[#DBDBDB] px-[12px] py-[6px]">
-                  <p>{dateRange?.to?.toLocaleDateString() ?? '날짜 선택'} </p>
-                  <CalendarIcon size={16} />
+                  <Icon 
+                    src={formToggle['progress'] ? ICONS.up20 : ICONS.down20}
+                    size={16}
+                    alt={formToggle['progress'] ? 'collapse' : 'expand'}
+                  />
                 </div>
               </div>
+
+              {formToggle['progress'] && (
+                <div className="absolute top-[40px] z-10 flex w-full max-w-[360px] flex-col self-end rounded-[4px] border bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
+                  {optionProgress.map((opt) => (
+                    <label
+                      key={opt}
+                      className="flex justify-between px-[12px] py-[6px] hover:bg-gray-50"
+                    >
+                      <p>{opt}</p>
+
+                      <input
+                        type="checkbox"
+                        value={opt}
+                        name="progress"
+                        onChange={handleFormData}
+                        checked={formData.progress === opt}
+                      />
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {formToggle['calendar'] && (
-              <Calendar
-                mode="range"
-                defaultMonth={dateRange?.from}
-                selected={dateRange}
-                onSelect={setDateRange}
-                className="absolute top-[40px] z-10 h-[356px] w-[284px] self-center rounded-[8px] border shadow-[0_4px_12px_rgba(0,0,0,0.15)]"
-                locale={ko}
-              />
-            )}
-          </div>
+            {/* 작업기간 선택하는 캘린더 메뉴 */}
+            <div className="relative flex w-full max-w-[560px] flex-col">
+              <div className="flex items-center gap-[8px]">
+                <p className="w-full max-w-[52px] text-[14px] text-[#646464]">
+                  작업기간
+                </p>
 
-          {/* 깃허브 템플릿 선택하는 드롭다운 메뉴*/}
-          <div className="relative flex w-full max-w-[420px] flex-col">
-            <div className="flex items-center gap-[8px]">
-              <p className="w-full max-w-[52px] text-[14px] text-[#646464]">
-                템플릿
-              </p>
-
-              <div
-                className="flex h-[32px] w-full max-w-[360px] cursor-pointer items-center justify-between rounded-[4px] border-2 border-[#DBDBDB] px-[12px] py-[6px]"
-                onClick={() => handleFormToggle('template')}
-              >
-                <p>선택</p>
-
-                <span className="text-[12px]">
-                  {formToggle['template'] ? '▲' : '▼'}
-                </span>
+                <div
+                  className="flex w-full cursor-pointer items-center gap-[8px]"
+                  onClick={() => handleFormToggle('calendar')}
+                >
+                  <div className="flex h-[32px] w-full items-center justify-between rounded-[4px] border-2 border-[#DBDBDB] px-[12px] py-[6px]">
+                    <p>
+                      {dateRange?.from?.toLocaleDateString() ?? '날짜 선택'}
+                    </p>
+                    <CalendarIcon size={16} />
+                  </div>
+                  <span>~</span>
+                  <div className="flex h-[32px] w-full items-center justify-between rounded-[4px] border-2 border-[#DBDBDB] px-[12px] py-[6px]">
+                    <p>{dateRange?.to?.toLocaleDateString() ?? '날짜 선택'} </p>
+                    <CalendarIcon size={16} />
+                  </div>
+                </div>
               </div>
+
+              {formToggle['calendar'] && (
+                <Calendar
+                  mode="range"
+                  defaultMonth={dateRange?.from}
+                  selected={dateRange}
+                  onSelect={setDateRange}
+                  className="absolute top-[40px] z-10 h-[356px] w-[284px] self-center rounded-[8px] border shadow-[0_4px_12px_rgba(0,0,0,0.15)]"
+                  locale={ko}
+                />
+              )}
             </div>
 
-            {formToggle['template'] && (
-              <div className="absolute top-[40px] z-10 flex w-full max-w-[360px] flex-col self-end rounded-[4px] border bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
-                <span onClick={getTemplateContents}>!! TODO 아직 안함</span>
-              </div>
-            )}
-          </div>
+            {/* 깃허브 템플릿 선택하는 드롭다운 메뉴*/}
+            <div className="relative flex w-full max-w-[420px] flex-col">
+              <div className="flex items-center gap-[8px]">
+                <p className="w-full max-w-[52px] text-[14px] text-[#646464]">
+                  템플릿
+                </p>
 
-          {/* 깃연동 체크하는 드롭다운 메뉴*/}
-          <div className="relative flex w-full max-w-[560px] flex-col">
-            <div className="flex items-center gap-[8px]">
-              <label className="flex h-[32px] w-full max-w-[140px] items-center justify-center gap-[4px] rounded-[8px] bg-[#F0F6FF] p-[8px] text-[#0065FF]">
-                <input type="checkbox" className="h-[16px] w-[16px]" />
-                <img src={Github} />
-                <p>GitHub 연동</p>
+                <div
+                  className="flex h-[32px] w-full max-w-[360px] cursor-pointer items-center justify-between rounded-[4px] border-2 border-[#DBDBDB] px-[12px] py-[6px]"
+                  onClick={() => handleFormToggle('template')}
+                >
+                  <p>선택</p>
+
+                  <Icon 
+                    src={formToggle['template'] ? ICONS.up20 : ICONS.down20}
+                    size={16}
+                    alt={formToggle['template'] ? 'collapse' : 'expand'}
+                  />
+                </div>
+              </div>
+
+              {formToggle['template'] && (
+                <div className="absolute top-[40px] z-10 flex w-full max-w-[360px] flex-col self-end rounded-[4px] border bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
+                  <span onClick={getTemplateContents}>!! TODO 아직 안함</span>
+                </div>
+              )}
+            </div>
+
+            {/* 깃연동 체크하는 드롭다운 메뉴*/}
+            <div className="relative flex w-full max-w-[560px] flex-col">
+              <div className="flex items-center gap-[8px]">
+                <label className="flex h-[32px] w-full max-w-[140px] items-center justify-center gap-[4px] rounded-[8px] bg-[#F0F6FF] p-[8px] text-[#0065FF]">
+                  <input type="checkbox" className="h-[16px] w-[16px]" />
+                  <img src={Github} />
+                  <p>GitHub 연동</p>
+                </label>
+
+                <div
+                  className="flex h-[32px] w-full max-w-[412px] cursor-pointer items-center justify-between rounded-[4px] border-2 border-[#DBDBDB] px-[12px] py-[6px]"
+                  onClick={() => handleFormToggle('github')}
+                >
+                  <p>!! TODO 아직 안함</p>
+
+                  <Icon 
+                    src={formToggle['github'] ? ICONS.up20 : ICONS.down20}
+                    size={16}
+                    alt={formToggle['github'] ? 'collapse' : 'expand'}
+                  />
+                </div>
+              </div>
+
+              {formToggle['github'] && (
+                <div className="absolute top-[40px] z-10 flex w-full max-w-[412px] flex-col self-end rounded-[4px] border bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
+                  <span onClick={getRepoList}>!! TODO 아직 안함</span>
+                </div>
+              )}
+            </div>
+
+            {/* 칸반 이슈 타이틀 */}
+            <div className="w-full">
+              <label className="flex flex-col gap-[4px]">
+                <p className="text-[14px] text-[#939393]">제목</p>
+                <input
+                  type="text"
+                  className="h-[40px] w-full rounded-[8px] bg-[#F5F5F5] px-[12px] py-[8px]"
+                  placeholder="제목을 입력해 주세요."
+                  defaultValue={item.title}
+                  name="title"
+                />
               </label>
-
-              <div
-                className="flex h-[32px] w-full max-w-[412px] cursor-pointer items-center justify-between rounded-[4px] border-2 border-[#DBDBDB] px-[12px] py-[6px]"
-                onClick={() => handleFormToggle('github')}
-              >
-                <p>!! TODO 아직 안함</p>
-
-                <span className="text-[12px]">
-                  {formToggle['github'] ? '▲' : '▼'}
-                </span>
-              </div>
             </div>
 
-            {formToggle['github'] && (
-              <div className="absolute top-[40px] z-10 flex w-full max-w-[412px] flex-col self-end rounded-[4px] border bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
-                <span onClick={getRepoList}>!! TODO 아직 안함</span>
-              </div>
-            )}
-          </div>
-
-          {/* 칸반 이슈 타이틀 */}
-          <div className="w-full">
-            <label className="flex flex-col gap-[4px]">
-              <p className="text-[14px] text-[#939393]">제목</p>
-              <input
-                type="text"
-                className="h-[40px] w-full rounded-[8px] bg-[#F5F5F5] px-[12px] py-[8px]"
-                placeholder="제목을 입력해 주세요."
-                defaultValue={item.title}
-                name="title"
-              />
-            </label>
-          </div>
-
-          {/* 칸반 이슈 내용 에디터 */}
-          <div className="w-full">
-            <label className="flex flex-col gap-[4px]">
-              <p className="text-[14px] text-[#939393]">상세 내용</p>
-              <div className="h-[320px] w-full overflow-auto">
-                <Editor content={item.body} setMarkdown={setMarkdown} />
-              </div>
-            </label>
-          </div>
-
-          {/* 담당자 선택 */}
-          <div className="relative flex w-full flex-col">
-            <div className="flex items-center gap-[8px]">
-              <p className="w-full max-w-[52px] text-[14px] text-[#646464]">
-                담당자
-              </p>
-
-              <div
-                className="flex h-[32px] w-full max-w-[160px] cursor-pointer items-center justify-between rounded-[4px] border-2 border-[#DBDBDB] px-[12px] py-[6px]"
-                onClick={() => handleFormToggle('assignee')}
-              >
-                <p>!! TODO 아직 안함</p>
-
-                <span className="text-[12px]">
-                  {formToggle['assignee'] ? '▲' : '▼'}
-                </span>
-              </div>
-
-              <p className="w-full max-w-[52px] text-[14px] text-[#646464]">
-                담당자
-              </p>
+            {/* 칸반 이슈 내용 에디터 */}
+            <div className="w-full">
+              <label className="flex flex-col gap-[4px]">
+                <p className="text-[14px] text-[#939393]">상세 내용</p>
+                <div className="h-[320px] w-full overflow-auto">
+                  <Editor content={item.body} setMarkdown={setMarkdown} />
+                </div>
+              </label>
             </div>
 
-            {formToggle['assignee'] && (
-              <div className="absolute bottom-[40px] z-10 flex w-full max-w-[160px] flex-col rounded-[4px] border bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
-                <span onClick={getOrgMemberList}>!! TODO 아직 안함</span>
+            {/* 담당자 선택 */}
+            <div className="relative flex w-full flex-col">
+              <div className="flex items-center gap-[8px]">
+                <p className="w-full max-w-[52px] text-[14px] text-[#646464]">
+                  담당자
+                </p>
+
+                <div
+                  className="flex h-[32px] w-full max-w-[160px] cursor-pointer items-center justify-between rounded-[4px] border-2 border-[#DBDBDB] px-[12px] py-[6px]"
+                  onClick={() => handleFormToggle('assignee')}
+                >
+                  <p>!! TODO 아직 안함</p>
+
+                  <Icon 
+                    src={formToggle['assignee'] ? ICONS.up20 : ICONS.down20}
+                    size={16}
+                    alt={formToggle['assignee'] ? 'collapse' : 'expand'}
+                  />
+                </div>
+
+                <p className="w-full max-w-[52px] text-[14px] text-[#646464]">
+                  담당자
+                </p>
               </div>
-            )}
-          </div>
 
-          {/* 라벨 추가 */}
-          <div className="relative flex w-full flex-col">
-            <div className="flex items-center gap-[8px]">
-              <p className="w-full max-w-[52px] text-[14px] text-[#646464]">
-                라벨 추가
-              </p>
-
-              <div
-                className="flex h-[32px] w-full max-w-[160px] cursor-pointer items-center justify-between rounded-[4px] border-2 border-[#DBDBDB] px-[12px] py-[6px]"
-                onClick={() => handleFormToggle('label')}
-              >
-                <p>!! TODO 아직 안함</p>
-
-                <span className="text-[12px]">
-                  {formToggle['label'] ? '▲' : '▼'}
-                </span>
-              </div>
-
-              <p className="w-full max-w-[52px] text-[14px] text-[#646464]">
-                라벨
-              </p>
+              {formToggle['assignee'] && (
+                <div className="absolute bottom-[40px] z-10 flex w-full max-w-[160px] flex-col rounded-[4px] border bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
+                  <span onClick={getOrgMemberList}>!! TODO 아직 안함</span>
+                </div>
+              )}
             </div>
 
-            {formToggle['label'] && (
-              <div className="absolute bottom-[40px] z-10 flex w-full max-w-[160px] flex-col rounded-[4px] border bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
-                <span onClick={getRepoLabelList}>!! TODO 아직 안함</span>
+            {/* 라벨 추가 */}
+            <div className="relative flex w-full flex-col">
+              <div className="flex items-center gap-[8px]">
+                <p className="w-full max-w-[52px] text-[14px] text-[#646464]">
+                  라벨 추가
+                </p>
+
+                <div
+                  className="flex h-[32px] w-full max-w-[160px] cursor-pointer items-center justify-between rounded-[4px] border-2 border-[#DBDBDB] px-[12px] py-[6px]"
+                  onClick={() => handleFormToggle('label')}
+                >
+                  <p>!! TODO 아직 안함</p>
+
+                  <Icon 
+                    src={formToggle['label'] ? ICONS.up20 : ICONS.down20}
+                    size={16}
+                    alt={formToggle['label'] ? 'collapse' : 'expand'}
+                  />
+                </div>
+
+                <p className="w-full max-w-[52px] text-[14px] text-[#646464]">
+                  라벨
+                </p>
               </div>
-            )}
+
+              {formToggle['label'] && (
+                <div className="absolute bottom-[40px] z-10 flex w-full max-w-[160px] flex-col rounded-[4px] border bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
+                  <span onClick={getRepoLabelList}>!! TODO 아직 안함</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         {/* 서브밋 버튼 */}
-        <div className="flex justify-end p-[16px]">
+        <div className="flex justify-end border-t border-gray-200 bg-white p-[16px]">
           <button
             className="h-[36px] w-[224px] rounded-[8px] bg-[#0065FF] text-[14px] text-white duration-200 hover:bg-black disabled:bg-black"
             type="submit"
             disabled={loading}
           >
-            {loading ? '처리 중...' : '추가하기'}
+            {loading
+              ? '처리 중...'
+              : !item.number || item.number === 0
+                ? '추가하기'
+                : '수정하기'}
           </button>
         </div>
       </form>

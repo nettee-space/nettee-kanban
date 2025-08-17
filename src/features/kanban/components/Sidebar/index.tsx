@@ -1,4 +1,6 @@
 // components/Sidebar/index.tsx
+import { Button } from '@/shared/components/ui/button';
+import { Icon, ICONS } from '@/shared/components/ui/icon';
 import { AssigneeFilter } from './AssigneeFilter';
 import { LabelFilter } from './LabelFilter';
 import { ProjectFilter } from './ProjectFilter';
@@ -18,16 +20,9 @@ interface SidebarProps {
   onReset: () => void;
 }
 
-export function Sidebar({
-  filters,
-  accordionMap,
-  onProjectToggle,
-  onTeamToggle,
-  onAccordionToggle,
-  onReset,
-}: SidebarProps) {
+export function Sidebar({ onReset }: SidebarProps) {
   return (
-    <aside className="flex w-[240px] flex-col bg-[#f8f8f8] p-[20px]">
+    <aside className="flex min-h-screen w-[240px] flex-col bg-[#f8f8f8] p-[20px]">
       {/* 헤더 섹션 */}
       <div className="flex flex-col gap-[40px]">
         <h1 className="text-center text-[24px] font-bold">Nettee's KanBan</h1>
@@ -40,30 +35,24 @@ export function Sidebar({
 
       {/* 필터 제어 섹션 */}
       <div className="flex items-center justify-between pt-[20px] pb-[10px]">
-        <p className="py-[6px]">필터</p>
-        <button
+        <p className="text-black-8 text-xl font-semibold">필터</p>
+        <Button
+          variant="ghost"
           type="reset"
-          className="duration-200 hover:text-[#ff5555]"
+          className="text-black-7 flex cursor-pointer items-center text-xl font-semibold duration-200 hover:text-[#ff5555]"
           onClick={onReset}
         >
-          초기화
-        </button>
+          <Icon src={ICONS.refresh24} size={24} alt="reset" />
+          <p>초기화</p>
+        </Button>
       </div>
 
       {/* 필터 섹션들 */}
       <ProjectFilter />
       <TeamFilter />
       <AssigneeFilter />
-
-      <LabelFilter
-        isOpen={accordionMap['sidebar-label']}
-        onAccordionToggle={() => onAccordionToggle('sidebar-label')}
-      />
-
-      <ViewOptions
-        isOpen={accordionMap['sidebar-more']}
-        onAccordionToggle={() => onAccordionToggle('sidebar-more')}
-      />
+      <LabelFilter />
+      <ViewOptions />
     </aside>
   );
 }

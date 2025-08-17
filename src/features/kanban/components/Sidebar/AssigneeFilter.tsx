@@ -1,88 +1,113 @@
 // components/Sidebar/AssigneeFilter.tsx
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
-import { E_Team, fetchTeamList } from '../../constants/kanban';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/shared/components/ui/accordion';
+import { Checkbox } from '@/shared/components/ui/checkbox';
+
+import { Button } from '@/shared/components/ui/button';
+import { Icon, ICONS } from '@/shared/components/ui/icon';
+import { cn } from '@/shared/lib/utils/cn';
 import { netteeMembers } from '../../constants/nettee';
 import { useFilterStore } from '../../store/filterStore';
 
 export function AssigneeFilter() {
-  const {
-    selectedTeams,
-    selectedAssignees,
-    assigneeAccordionOpen,
-    toggleTeam,
+  const { 
+    selectedTeams, 
+    selectedAssignees, 
+    toggleTeam, 
     toggleAssignee,
-    toggleAssigneeAccordion,
+    teamList,
+    loadTeamList 
   } = useFilterStore();
 
-  const [teamList, setTeamList] = useState<[string, string][]>(E_Team);
-
   useEffect(() => {
-    const loadTeams = async () => {
-      const teams = await fetchTeamList();
-      setTeamList(teams);
-    };
-    loadTeams();
-  }, []);
+    loadTeamList();
+  }, [loadTeamList]);
 
-  const allTeamList = teamList.map(([, name]) => name);
+  const teamObjects = teamList.map(([id, name]) => ({ id, name }));
+
   const memberList = Object.values(netteeMembers).flat();
 
   const teamMembers = selectedTeams.includes('All')
     ? memberList
-    : selectedTeams.flatMap(
-        (team) => netteeMembers[team as keyof typeof netteeMembers]
-      );
+    : selectedTeams.flatMap((teamId) => {
+        const teamName = teamList.find(([id]) => id === teamId)?.[1];
+        return teamName
+          ? netteeMembers[teamName as keyof typeof netteeMembers]
+          : [];
+      });
 
   return (
     <div className="border-t border-[#dbdbdb] py-[20px]">
-      <div className="flex items-center justify-between">
-        <p>담당자</p>
-        <button type="button" onClick={toggleAssigneeAccordion}>
-          {assigneeAccordionOpen ? '▼' : '▲'}
-        </button>
-      </div>
-
-      <div
-        className="flex flex-col overflow-hidden pt-[10px]"
-        style={{
-          height: assigneeAccordionOpen ? '100%' : '0px',
-        }}
+      <Accordion
+        type="single"
+        collapsible
+        defaultValue="assignee"
+        className="w-full"
       >
-        <div className="flex flex-wrap gap-[8px] pt-[8px] pb-[16px]">
-          {allTeamList.map((team) => (
-            <button
-              key={`${team}_button`}
-              type="button"
-              className={`flex h-[28px] w-[60px] items-center justify-center rounded-[4px] ${
-                selectedTeams.includes(team)
-                  ? 'bg-[#0065FF] text-white'
-                  : 'bg-[#ededed]'
-              }`}
-              onClick={() => toggleTeam(team)}
-            >
-              {team}
-            </button>
-          ))}
-        </div>
+        <AccordionItem value="assignee" className="border-none">
+          <AccordionTrigger className="text-black-8 py-0 text-xl font-semibold hover:no-underline">
+            <p>담당자</p>
+          </AccordionTrigger>
 
-        <ul className="h-[306px] w-full overflow-y-scroll">
-          {teamMembers.map((member, idx) => (
-            <li key={`${idx + member}_assignee`} className="px-[8px] py-[6px]">
-              <label className="flex items-center gap-[8px]">
-                <input
-                  type="checkbox"
-                  className="h-[18px] w-[18px] rounded-[4px]"
-                  checked={selectedAssignees.includes(member)}
-                  onChange={() => toggleAssignee(member)}
-                />
-                <div className="h-[20px] w-[20px] rounded-full bg-[#dbdbdb]"></div>
-                {member}
-              </label>
-            </li>
-          ))}
-        </ul>
-      </div>
+          <AccordionContent className="overflow-visible pt-[10px] pb-0 text-2xl">
+            <div className="flex flex-wrap gap-[8px] pt-[8px] pb-[16px]">
+              {teamObjects.map((team) => (
+                <Button
+                  key={`${team.id}_button`}
+                  type="button"
+                  variant={'default'}
+                  className={`flex h-[28px] w-[60px] cursor-pointer items-center justify-center text-xl ${
+                    selectedTeams.includes(team.id)
+                      ? 'bg-primary-12 text-white'
+                      : 'text-black-7 bg-[#ededed]'
+                  }`}
+                  onClick={() => toggleTeam(team.id)}
+                >
+                  {team.name}
+                </Button>
+              ))}
+            </div>
+
+            <ul className="h-[306px] w-full space-y-1 overflow-y-scroll">
+              {teamMembers.map((member) => {
+                const checked = selectedAssignees.includes(member);
+                return (
+                  // TODO: 추수 같은 팀이면서 동명이인인 멤버가 있을 경우 어떻게 이름을 저장할 것인지 논의 필요
+                  <li key={`${member}_assignee`} className="px-[8px] py-[4px]">
+                    <label
+                      className={cn(
+                        'flex cursor-pointer items-center gap-[8px] font-medium',
+                        checked ? 'text-black-13' : 'text-black-7'
+                      )}
+                    >
+                      <Checkbox
+                        id={`checkbox-${member}`}
+                        checked={checked}
+                        onCheckedChange={() => {
+                          console.log('toggleAssignee 호출값: ', member);
+                          toggleAssignee(member);
+                        }}
+                      />
+                      <Icon
+                        src={ICONS.worker24}
+                        size={24}
+                        alt={`${member}-github-profile`}
+                      />
+                      {member}
+                    </label>
+                  </li>
+                );
+              })}
+            </ul>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </div>
   );
 }

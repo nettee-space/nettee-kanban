@@ -2,41 +2,48 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { dummyLabels, E_Team, projectList } from '../constants/kanban';
+import {
+  DEFAULT_PROJECT_LIST,
+  DEFAULT_TEAM_LIST,
+  dummyLabels,
+  fetchProjectList,
+  fetchTeamList,
+} from '../constants/kanban';
 import { netteeMembers } from '../constants/nettee';
 
 interface FilterState {
+  // 필터 상태
   selectedProjects: string[];
   selectedTeams: string[];
   selectedAssignees: string[];
   selectedLabels: string[];
 
-  projectAccordionOpen: boolean;
-  teamAccordionOpen: boolean;
-  assigneeAccordionOpen: boolean;
-  labelAccordionOpen: boolean;
+  // 데이터 목록 상태
+  teamList: [string, string][];
+  projectList: [string, string][];
 
+  // 필터 액션
   toggleProject: (project: string) => void;
   clearProjects: () => void;
   selectAllProjects: () => void;
-  toggleProjectAccordion: () => void;
 
   toggleTeam: (team: string) => void;
   clearTeams: () => void;
   selectAllTeams: () => void;
-  toggleTeamAccordion: () => void;
 
   toggleAssignee: (assignee: string) => void;
   clearAssignees: () => void;
   selectAllAssignees: () => void;
-  toggleAssigneeAccordion: () => void;
 
   toggleLabel: (label: string) => void;
   clearLabels: () => void;
   selectAllLabels: () => void;
-  toggleLabelAccordion: () => void;
 
   resetAllFilters: () => void;
+
+  // 데이터 로드 액션
+  loadTeamList: () => Promise<void>;
+  loadProjectList: () => Promise<void>;
 
   getFilteredData?: (data: any[]) => any[];
 }
@@ -48,9 +55,8 @@ export const useFilterStore = create<FilterState>()(
       selectedTeams: [],
       selectedAssignees: [],
       selectedLabels: [],
-      projectAccordionOpen: true,
-      teamAccordionOpen: true,
-      assigneeAccordionOpen: true,
+      teamList: DEFAULT_TEAM_LIST, // 기본값
+      projectList: DEFAULT_PROJECT_LIST, // 기본값
 
       toggleProject: (project) =>
         set(
@@ -60,7 +66,7 @@ export const useFilterStore = create<FilterState>()(
             if (project === 'All') {
               newSelectedProjects = state.selectedProjects.includes('All')
                 ? []
-                : ['All', ...projectList];
+                : ['All', ...state.projectList.map(([id]) => id)];
             } else {
               const withoutAll = state.selectedProjects.filter(
                 (p) => p !== 'All'
@@ -71,8 +77,8 @@ export const useFilterStore = create<FilterState>()(
               } else {
                 const newList = [...withoutAll, project];
 
-                const allIndividualSelected = projectList.every(
-                  (p) => p === 'All' || newList.includes(p)
+                const allIndividualSelected = state.projectList.every(
+                  ([id]) => id === 'All' || newList.includes(id)
                 );
 
                 newSelectedProjects = allIndividualSelected
@@ -92,42 +98,44 @@ export const useFilterStore = create<FilterState>()(
 
       selectAllProjects: () =>
         set(
-          () => ({
-            selectedProjects: ['All', ...projectList],
+          (state) => ({
+            selectedProjects: ['All', ...state.projectList.map(([id]) => id)],
           }),
           false,
           'selectAllProjects'
-        ),
-
-      toggleProjectAccordion: () =>
-        set(
-          (state) => ({
-            projectAccordionOpen: !state.projectAccordionOpen,
-          }),
-          false,
-          'toggleProjectAccordion'
         ),
 
       toggleTeam: (team) =>
         set(
           (state) => {
             let newSelectedTeams;
-            const teamList = Object.values(E_Team);
+            const teamList = state.teamList
+              .map(([id]) => id)
+              .filter((id: string) => id !== 'All');
 
             if (team === 'All') {
+              // "All"을 클릭하면 토글 방식으로 동작
               newSelectedTeams = state.selectedTeams.includes('All')
                 ? []
                 : ['All', ...teamList];
             } else {
-              const withoutAll = state.selectedTeams.filter((t) => t !== 'All');
-
+              // 개별 팀을 클릭할 때
               if (state.selectedTeams.includes(team)) {
-                newSelectedTeams = withoutAll.filter((t) => t !== team);
+                // 이미 선택된 팀을 클릭하면 해제
+                const withoutTeam = state.selectedTeams.filter(
+                  (t) => t !== team
+                );
+                // "All"이 선택되어 있었다면 "All"도 함께 해제
+                newSelectedTeams = withoutTeam.filter((t) => t !== 'All');
               } else {
+                // 선택되지 않은 팀을 클릭하면 추가
+                const withoutAll = state.selectedTeams.filter(
+                  (t) => t !== 'All'
+                );
                 const newList = [...withoutAll, team];
 
-                const allIndividualSelected = teamList.every(
-                  (t) => t === 'All' || newList.includes(t)
+                const allIndividualSelected = teamList.every((t: string) =>
+                  newList.includes(t)
                 );
 
                 newSelectedTeams = allIndividualSelected
@@ -146,20 +154,11 @@ export const useFilterStore = create<FilterState>()(
 
       selectAllTeams: () =>
         set(
-          () => ({
-            selectedTeams: ['All', ...Object.values(E_Team)],
+          (state) => ({
+            selectedTeams: ['All', ...state.teamList.map(([id]) => id)],
           }),
           false,
           'selectAllTeams'
-        ),
-
-      toggleTeamAccordion: () =>
-        set(
-          (state) => ({
-            teamAccordionOpen: !state.teamAccordionOpen,
-          }),
-          false,
-          'toggleTeamAccordion'
         ),
 
       toggleAssignee: (assignee) =>
@@ -211,15 +210,6 @@ export const useFilterStore = create<FilterState>()(
           'selectAllAssignees'
         ),
 
-      toggleAssigneeAccordion: () =>
-        set(
-          (state) => ({
-            assigneeAccordionOpen: !state.assigneeAccordionOpen,
-          }),
-          false,
-          'toggleAssigneeAccordion'
-        ),
-
       toggleLabel: (label) =>
         set((state) => {
           const exists = state.selectedLabels.includes(label);
@@ -231,8 +221,6 @@ export const useFilterStore = create<FilterState>()(
 
       clearLabels: () => set({ selectedLabels: [] }),
       selectAllLabels: () => set({ selectedLabels: [...dummyLabels] }),
-      toggleLabelAccordion: () =>
-        set((state) => ({ labelAccordionOpen: !state.labelAccordionOpen })),
 
       resetAllFilters: () =>
         set(
@@ -240,13 +228,30 @@ export const useFilterStore = create<FilterState>()(
             selectedProjects: [],
             selectedTeams: [],
             selectedAssignees: [],
-            projectAccordionOpen: true,
-            teamAccordionOpen: true,
-            assigneeAccordionOpen: true,
           },
           false,
           'resetAllFilters'
         ),
+
+      loadTeamList: async () => {
+        try {
+          const teamList = await fetchTeamList();
+          set({ teamList }, false, 'loadTeamList');
+        } catch (error) {
+          console.error('팀 목록 로드 실패:', error);
+          // 기본값 유지
+        }
+      },
+
+      loadProjectList: async () => {
+        try {
+          const projectList = await fetchProjectList();
+          set({ projectList }, false, 'loadProjectList');
+        } catch (error) {
+          console.error('프로젝트 목록 로드 실패:', error);
+          // 기본값 유지
+        }
+      },
     }),
     { name: 'filter-store' }
   )

@@ -1,33 +1,51 @@
-// components/Sidebar/ViewOptions.tsx
-interface ViewOptionsProps {
-  isOpen: boolean;
-  onAccordionToggle: () => void;
-}
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/shared/components/ui/accordion';
+import { Button } from '@/shared/components/ui/button';
+import { Icon, ICONS } from '@/shared/components/ui/icon';
 
-export function ViewOptions({ isOpen, onAccordionToggle }: ViewOptionsProps) {
+// components/Sidebar/ViewOptions.tsx
+
+export function ViewOptions() {
   return (
     <div className="border-t border-[#dbdbdb] py-[20px]">
-      <div className="flex items-center justify-between">
-        <p>보기</p>
-        <button type="button" onClick={onAccordionToggle}>
-          {isOpen ? '▼' : '▲'}
-        </button>
-      </div>
-
-      <div
-        className={`flex flex-col overflow-hidden pt-[10px] ${
-          isOpen ? 'h-full' : 'h-0'
-        }`}
+      <Accordion
+        type="single"
+        collapsible
+        defaultValue="view-options"
+        className="w-full"
       >
-        <div className="flex gap-[10px] p-[8px]">
-          <span className="flex h-[32px] w-[32px] items-center justify-center rounded-[4px] bg-[#ededed] p-[6px] font-bold text-[#0065FF]">
-            P
-          </span>
-          <span className="flex h-[32px] w-[32px] items-center justify-center rounded-[4px] bg-[#ededed] p-[6px] font-bold text-[#0065FF]">
-            G
-          </span>
-        </div>
-      </div>
+        <AccordionItem value="view-options" className="border-none">
+          <AccordionTrigger className="text-black-8 py-0 text-xl font-semibold hover:no-underline">
+            <p>보기</p>
+          </AccordionTrigger>
+          <AccordionContent className="overflow-visible pt-[10px] pb-0 text-2xl">
+            <div>
+              <div className="flex gap-[10px] p-[8px]">
+                <Button
+                  size={'icon'}
+                  className="box-content h-8 w-8 cursor-pointer p-2"
+                  type="button"
+                  variant={'secondary'}
+                >
+                  <Icon src={ICONS.pin20} />
+                </Button>
+                <Button
+                  size={'icon'}
+                  className="box-content h-8 w-8 cursor-pointer p-2"
+                  type="button"
+                  variant={'secondary'}
+                >
+                  <Icon src={ICONS.github20} />
+                </Button>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </div>
   );
 }

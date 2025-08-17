@@ -1,28 +1,45 @@
+import { CircleCheckIcon } from 'lucide-react';
+import { DragEvent, MouseEvent } from 'react';
+
 import Github from '@/assets/github.svg';
 import pinActive from '@/assets/pinActive.svg';
 import pinDisable from '@/assets/pinDisable.svg';
-import { CircleCheckIcon } from 'lucide-react';
-import { DragEvent, MouseEvent } from 'react';
-import { IssueData } from '../../types/issues';
+
+import { IssueData } from '../../../types/issues';
 
 interface KanbanCardProps {
-  item: IssueData;
+  item: IssueData & {
+    cardIndex: string;
+  };
+  columnId: string;
+  project: string;
+  team: string;
   isPinned: boolean;
-  onDragStart: (e: DragEvent, item: IssueData) => void;
-  onPin: (e: MouseEvent<HTMLImageElement>) => void;
+  onDragStart: (
+    e: DragEvent,
+    cardId: string,
+    columnId: string,
+    cardIndex: string,
+    project: string,
+    team: string
+  ) => void;
+  onPin?: (e: MouseEvent<HTMLImageElement>) => void;
   onOpenModal: () => void;
 }
 
 export function KanbanCard({
   item,
   isPinned,
+  columnId,
+  project,
+  team,
   onDragStart,
   onPin,
   onOpenModal,
 }: KanbanCardProps) {
   const handlePinClick = (e: MouseEvent<HTMLImageElement>) => {
     e.stopPropagation();
-    onPin(e);
+    onPin?.(e);
   };
 
   return (
@@ -32,7 +49,9 @@ export function KanbanCard({
     >
       <div
         draggable="true"
-        onDragStart={(e) => onDragStart(e, item)}
+        onDragStart={(e) =>
+          onDragStart(e, item.id, columnId, item.cardIndex, project, team)
+        }
         className="cursor-grab px-[14px] py-[16px] active:cursor-grabbing active:bg-[#f5f5f5]"
       >
         <div className="flex items-center gap-[4px]">

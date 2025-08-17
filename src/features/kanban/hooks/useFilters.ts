@@ -1,7 +1,7 @@
 // hooks/useFilters.ts
 import { useState } from 'react';
 
-import { E_Team, projectList } from '../constants/kanban';
+import { useFilterStore } from '../store/filterStore';
 
 interface FilterState {
   selectedProject: string[];
@@ -9,10 +9,15 @@ interface FilterState {
   selectedAssignee: string[];
 }
 
-const allProjects = projectList.filter((p) => p !== 'All');
-const allTeams = Object.values(E_Team).filter((t) => t !== 'All');
-
 export const useFilters = () => {
+  const { projectList, teamList } = useFilterStore();
+  const allProjects = projectList
+    .filter(([id]) => id !== 'All')
+    .map(([id]) => id);
+  const allTeams = teamList
+    .filter(([id]) => id !== 'All')
+    .map(([id]) => id);
+
   const [filters, setFilters] = useState<FilterState>({
     selectedProject: [''],
     selectedTeam: [''],

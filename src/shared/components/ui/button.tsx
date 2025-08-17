@@ -9,8 +9,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default:
-          'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90',
+        default: 'bg-primary-12 text-black-1 shadow-xs', // ! uncheck => hover => click => check때에 hover와 click의 색이 제대로 figma에 반영x
         destructive:
           'bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60',
         outline:

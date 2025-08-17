@@ -1,17 +1,13 @@
 // KanbanLayout.tsx
-import { useState } from 'react';
-import { useAccordion } from '../hooks/useAccordion';
-import { useDragAndDrop } from '../hooks/useDragAndDrop';
-import { useFilters } from '../hooks/useFilters';
-import { useKanbanData } from '../hooks/useKanbanData';
-import { IssueData, KanbanProgress } from '../types/issues';
-import { KanbanBoard } from './KanbanBoard';
-import { KanbanModal } from './Modal/KanbanModal';
-import { Sidebar } from './Sidebar';
+import { useAccordion } from '../../hooks/useAccordion';
+import { useFilters } from '../../hooks/useFilters';
+import { useKanbanData } from '../../hooks/useKanbanData';
+import { KanbanProgress } from '../../types/issues';
+import { ProjectKanban } from '../KanbanBoard/ProjectKanban';
+import { Sidebar } from '../Sidebar';
 
-export function KanbanLayout() {
+export function NetteeKanbanLayout() {
   // 상태 관리
-  const [modalItem, setModalItem] = useState<Partial<IssueData> | null>(null);
 
   // 커스텀 훅들
   const {
@@ -20,20 +16,17 @@ export function KanbanLayout() {
     loading,
     setPinnedIssues,
     setGroupedIssues,
+    addIssue,
   } = useKanbanData();
   const { filters, updateProjectFilter, updateTeamFilter } = useFilters();
   const { accordionMap, toggleAccordion, resetAccordion } = useAccordion();
-  const { handleDragStart, handleDragEnd, handleDragOver, handleDragLeave } =
-    useDragAndDrop({
-      setGroupedIssues,
-    });
 
   // PIN 기능
   const handlePin = (
     project: string,
     team: string,
     progress: string,
-    cardId: number
+    cardId: string
   ) => {
     setGroupedIssues((prev) => {
       const updated = { ...prev };
@@ -70,7 +63,7 @@ export function KanbanLayout() {
     project: string,
     team: string,
     progress: string,
-    cardId: number
+    cardId: string
   ) => {
     setPinnedIssues((prev) => {
       const targetList =
@@ -127,26 +120,15 @@ export function KanbanLayout() {
         onAccordionToggle={toggleAccordion}
         onReset={handleReset}
       />
-      <KanbanBoard
+      <ProjectKanban
         groupedIssues={groupedIssues}
         pinnedIssues={pinnedIssues}
         accordionMap={accordionMap}
         onAccordionToggle={toggleAccordion}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onPin={handlePin}
-        onUnpin={handleUnpin}
-        onOpenModal={setModalItem}
+        addIssue={addIssue}
+        // onPin={handlePin}
+        // onUnpin={handleUnpin}
       />
-      {modalItem && (
-        <KanbanModal
-          item={modalItem}
-          setModal={setModalItem}
-          setIssues={setGroupedIssues}
-        />
-      )}
     </main>
   );
 }

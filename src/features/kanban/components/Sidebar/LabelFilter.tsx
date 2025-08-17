@@ -1,16 +1,23 @@
 // components/Sidebar/LabelFilter.tsx
 import { useEffect, useState } from 'react';
 
-import { dummyLabels, fetchTaskPriorities } from '../../constants/kanban';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/shared/components/ui/accordion';
+
+import {
+  dummyLabels,
+  fetchTaskPriorities,
+  getStateKeyFromLabel,
+} from '../../constants/kanban';
 import { useFilterStore } from '../../store/filterStore';
+import { StateLabel } from '../StateLabel';
 
 export function LabelFilter() {
-  const {
-    selectedLabels,
-    labelAccordionOpen,
-    toggleLabel,
-    toggleLabelAccordion,
-  } = useFilterStore();
+  const { selectedLabels, toggleLabel } = useFilterStore();
 
   const [list, setList] = useState<string[]>(dummyLabels); // 초기값
 
@@ -22,41 +29,42 @@ export function LabelFilter() {
     load();
   }, []);
 
-  const allLabelList = list;
+  const labelObjects = list.map((name) => ({ id: name, name }));
 
   return (
     <div className="border-t border-[#dbdbdb] py-[20px]">
-      <div className="flex items-center justify-between">
-        <p>작업중요도</p>
-        <button type="button" onClick={toggleLabelAccordion}>
-          {labelAccordionOpen ? '▼' : '▲'}
-        </button>
-      </div>
-
-      <div
-        className={`flex flex-col overflow-hidden pt-[10px] ${
-          labelAccordionOpen ? 'h-full' : 'h-0'
-        }`}
+      <Accordion
+        type="single"
+        collapsible
+        defaultValue="label"
+        className="w-full"
       >
-        <div className="flex flex-wrap gap-[8px] p-[8px]">
-          {allLabelList.map((label, idx) => {
-            const isSelected = selectedLabels.includes(label);
-            return (
-              <span
-                key={`${idx + label}_label`}
-                onClick={() => toggleLabel(label)}
-                className={`text-xxl h-[24px] cursor-pointer rounded-full px-[12px] py-[2px] transition-colors ${
-                  isSelected
-                    ? 'bg-[#0065FF] text-white'
-                    : 'bg-[#ededed] text-black'
-                }`}
-              >
-                {label}
-              </span>
-            );
-          })}
-        </div>
-      </div>
+        <AccordionItem value="label" className="border-none">
+          <AccordionTrigger className="text-black-8 py-0 text-xl font-semibold hover:no-underline">
+            <p>라벨 선택</p>
+          </AccordionTrigger>
+          <AccordionContent className="overflow-visible pt-[10px] pb-0 text-2xl">
+            <div>
+              <div className="flex flex-wrap gap-[8px] p-[8px]">
+                {labelObjects.map((label) => {
+                  const isSelected = selectedLabels.includes(label.id);
+                  const stateKey = getStateKeyFromLabel(label.name);
+                  return (
+                    <StateLabel
+                      key={`${label.id}_label`}
+                      state={stateKey}
+                      onClick={() => toggleLabel(label.id)}
+                      selected={isSelected}
+                    >
+                      {label.name}
+                    </StateLabel>
+                  );
+                })}
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </div>
   );
 }
