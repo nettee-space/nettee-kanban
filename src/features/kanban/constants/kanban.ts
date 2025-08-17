@@ -34,8 +34,8 @@ export const fetchProjectList = async (): Promise<[string, string][]> => {
     const projects: [string, string][] = [...DEFAULT_PROJECT_LIST];
 
     for (const project of result) {
-      if (project.name) {
-        projects.push([project.name, project.name]);
+      if (project.name && project.id !== undefined) {
+        projects.push([String(project.id), project.name]);
       }
     }
 
@@ -68,7 +68,29 @@ export const getStateKeyFromLabel = (
   return entry ? (entry[0] as keyof typeof stateLabelMap) : 'todo'; // 기본값
 };
 
-// 1차원 배열로 통합된 dummyLabels - 서버에서 데이터 가져와서 업데이트
+// task_priority_id (1,2,3,4,5) <-> stateLabel key (hold,low,medium,high,veryhigh) 매핑
+export const taskPriorityIdToStateKey = (priorityId: number): keyof typeof stateLabelMap => {
+  const mapping: Record<number, keyof typeof stateLabelMap> = {
+    1: 'hold',     // 보류
+    2: 'low',      // 낮음
+    3: 'medium',   // 보통
+    4: 'high',     // 높음
+    5: 'veryhigh', // 매우 높음
+  };
+  return mapping[priorityId] || 'medium'; // 기본값: 보통
+};
+
+export const stateKeyToTaskPriorityId = (stateKey: string): number => {
+  const mapping: Record<string, number> = {
+    'hold': 1,     // 보류
+    'low': 2,      // 낮음
+    'medium': 3,   // 보통
+    'high': 4,     // 높음
+    'veryhigh': 5, // 매우 높음
+  };
+  return mapping[stateKey] || 3; // 기본값: 3 (보통)
+};
+
 export let dummyLabels: string[] = Object.values(stateLabelMap);
 export const fetchTaskPriorities = async (): Promise<string[]> => {
   try {

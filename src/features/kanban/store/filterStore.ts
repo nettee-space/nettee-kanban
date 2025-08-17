@@ -9,7 +9,7 @@ import {
   fetchProjectList,
   fetchTeamList,
 } from '../constants/kanban';
-import { netteeMembers } from '../constants/nettee';
+import { useUserStore } from '@/store/userStore';
 
 interface FilterState {
   // 필터 상태
@@ -165,7 +165,9 @@ export const useFilterStore = create<FilterState>()(
         set(
           (state) => {
             let newSelectedAssignees;
-            const allMembers = Object.values(netteeMembers).flat();
+            // userStore에서 사용자 목록 가져오기
+            const userStore = useUserStore.getState();
+            const allMembers = userStore.users.map(user => user.login);
 
             if (assignee === 'All') {
               newSelectedAssignees = state.selectedAssignees.includes('All')
@@ -203,7 +205,9 @@ export const useFilterStore = create<FilterState>()(
       selectAllAssignees: () =>
         set(
           () => {
-            const allMembers = Object.values(netteeMembers).flat();
+            // userStore에서 사용자 목록 가져오기
+            const userStore = useUserStore.getState();
+            const allMembers = userStore.users.map(user => user.login);
             return { selectedAssignees: ['All', ...allMembers] };
           },
           false,

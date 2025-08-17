@@ -6,10 +6,11 @@ import { ColumnContainer } from './ColumnContainer';
 
 interface TeamBoardProps {
   teams: TeamDataModel;
+  project: string;
   addIssue?: (issueData: any) => void;
 }
 
-export function TeamBoard({ teams, addIssue }: TeamBoardProps) {
+export function TeamBoard({ teams, project, addIssue }: TeamBoardProps) {
   // 팀별 열림/닫힘 상태를 관리하는 Map
   const [teamOpenStates, setTeamOpenStates] = useState<Record<string, boolean>>({});
 
@@ -39,7 +40,7 @@ export function TeamBoard({ teams, addIssue }: TeamBoardProps) {
                 {Object.entries(progressMap).map(([progress, issues]) => (
                   <KanbanColumn
                     key={`${team}-${progress}`} // TODO: project id도 넣어줘야함
-                    project={'Blolet'} // TODO:
+                    project={project}
                     team={team}
                     progress={progress}
                     issues={issues}

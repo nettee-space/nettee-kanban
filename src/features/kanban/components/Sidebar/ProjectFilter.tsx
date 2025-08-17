@@ -48,12 +48,13 @@ export function ProjectFilter() {
                         checked={checked}
                         onCheckedChange={() => {
                           console.log(
-                            'toggleProject 호출값 ID:',
+                            '🎯 toggleProject 호출값 ID:',
                             project.id,
                             'Name:',
                             project.name
                           );
                           toggleProject(project.id);
+                          console.log('🎯 toggleProject 후 selectedProjects:', useFilterStore.getState().selectedProjects);
                         }}
                       />
                       <span
