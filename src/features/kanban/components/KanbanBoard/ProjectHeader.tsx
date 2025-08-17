@@ -4,7 +4,7 @@ import { mapProjectIdToName } from '@/store/issueStore';
 
 interface ProjectHeaderProps {
   title: string;
-  onOpen: (key: string) => void;
+  onOpen: () => void;
   isOpened: boolean;
 }
 
@@ -22,7 +22,7 @@ export function ProjectHeader({ title, isOpened, onOpen }: ProjectHeaderProps) {
         variant={'ghost'}
         size={'icon'}
         className="h-13 w-13 cursor-pointer"
-        onClick={() => onOpen(`kanban-${title}`)} // accordion key는 원래 title 사용
+        onClick={onOpen}
       >
         <Icon
           src={isOpened ? ICONS.down32 : ICONS.up32}

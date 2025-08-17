@@ -58,7 +58,7 @@ export function ProjectKanban({
           <Fragment key={`${project}`}>
             <ProjectHeader
               isOpened={isOpened}
-              onOpen={onAccordionToggle}
+              onOpen={() => onAccordionToggle(accordionKey)}
               title={project}
             />
             {/* 팀별 칸반 보드들 */}
