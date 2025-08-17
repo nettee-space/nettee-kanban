@@ -1,3 +1,6 @@
+import { Button } from '@/shared/components/ui/button';
+import { Icon, ICONS } from '@/shared/components/ui/icon';
+
 interface TeamHeaderProps {
   projectName: string;
   title: string;
@@ -13,20 +16,19 @@ export function TeamHeader({
 }: TeamHeaderProps) {
   return (
     <div className="flex justify-between">
-      {/* 팀 헤더 */}
-      {/* <div className="flex justify-between">
-                  <p className="text-[16px] font-semibold">{team}</p>
-                  <button
-                    type="button"
-                    onClick={() => onAccordionToggle(`${project}-${team}`)}
-                  >
-                    {accordionMap[`${project}-${team}`] ? '▼' : '▲'}
-                  </button>
-                </div> */}
       <p className="text-[16px] font-semibold">{title}</p>
-      <button type="button" onClick={() => onClick(`${projectName}-${title}`)}>
-        {isOpened ? '▼' : '▲'}
-      </button>
+      <Button
+        type="button"
+        variant={'ghost'}
+        className="cursor-pointer"
+        onClick={() => onClick(`${projectName}-${title}`)}
+      >
+        <Icon
+          src={isOpened ? ICONS.down20 : ICONS.up20}
+          size={20}
+          alt={isOpened ? 'collapse' : 'expand'}
+        />
+      </Button>
     </div>
   );
 }

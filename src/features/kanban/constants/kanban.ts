@@ -1,20 +1,13 @@
 import { supabaseUtils } from '@/supabase/supabaseUtil';
 
-export enum E_Team {
-  all = 'All',
-  lead = 'Lead',
-  pl = 'PL',
-  fe = 'FE',
-  be = 'BE',
-  ux = 'UXUI',
-}
-export let E_TeamList: [string, string][] = [['All', 'All']];
+// FilterStore의 기본값과 동일한 기본 팀 목록
+export const DEFAULT_TEAM_LIST: [string, string][] = [['All', '전체']];
 
 export const fetchTeamList = async (): Promise<[string, string][]> => {
   try {
     const result = await supabaseUtils.getTeams(); // [{ id, name }]
 
-    const teams: [string, string][] = [['All', 'All']];
+    const teams: [string, string][] = [...DEFAULT_TEAM_LIST];
 
     for (const team of result) {
       if (team.name && team.id !== undefined) {
@@ -22,40 +15,61 @@ export const fetchTeamList = async (): Promise<[string, string][]> => {
       }
     }
 
-    E_TeamList = teams;
-    return E_TeamList;
+    return teams;
   } catch (e) {
     console.error('팀 목록 불러오기 실패:', e);
-    return E_TeamList;
+    return DEFAULT_TEAM_LIST;
   }
 };
 
 export const sidebarList = ['project', 'team', 'assignee', 'label', 'more'];
 
-// 1차원 배열로 통합된 projectList - 서버에서 데이터 가져와서 업데이트
-export let projectList = ['All', 'Blolet'];
-export const fetchProjectList = async (): Promise<string[]> => {
+// FilterStore의 기본값과 동일한 기본 프로젝트 목록
+export const DEFAULT_PROJECT_LIST: [string, string][] = [['All', '전체']];
+
+export const fetchProjectList = async (): Promise<[string, string][]> => {
   try {
     const result = await supabaseUtils.getProjects();
 
-    const projects: string[] = ['All'];
+    const projects: [string, string][] = [...DEFAULT_PROJECT_LIST];
 
     for (const project of result) {
       if (project.name) {
-        projects.push(project.name);
+        projects.push([project.name, project.name]);
       }
     }
 
-    projectList = projects;
-    return projectList;
+    return projects;
   } catch (e) {
     console.error('프로젝트 목록 불러오기 실패', e);
-    return projectList; // fallback: 기존 값 유지
+    return DEFAULT_PROJECT_LIST; // fallback: 기본값 사용
   }
 };
 
+// StateLabel의 state와 매핑되는 라벨 맵
+export const stateLabelMap = {
+  hold: '보류',
+  low: '낮음',
+  medium: '보통',
+  high: '높음',
+  veryhigh: '매우 높음',
+  todo: 'TODO',
+  doing: 'DOING',
+  done: 'DONE',
+} as const;
+
+// 라벨 텍스트에서 state key를 찾는 헬퍼 함수
+export const getStateKeyFromLabel = (
+  labelText: string
+): keyof typeof stateLabelMap => {
+  const entry = Object.entries(stateLabelMap).find(
+    ([_, value]) => value === labelText
+  );
+  return entry ? (entry[0] as keyof typeof stateLabelMap) : 'todo'; // 기본값
+};
+
 // 1차원 배열로 통합된 dummyLabels - 서버에서 데이터 가져와서 업데이트
-export let dummyLabels = ['보류', '낮음', '보통', '높음', '매우 높음'];
+export let dummyLabels: string[] = Object.values(stateLabelMap);
 export const fetchTaskPriorities = async (): Promise<string[]> => {
   try {
     const result = await supabaseUtils.getTaskPriorities();
@@ -67,7 +81,8 @@ export const fetchTaskPriorities = async (): Promise<string[]> => {
         labels.push(priority.priority_name);
       }
     }
-    dummyLabels = labels;
+    // 서버에서 가져온 데이터로 업데이트하되, 기본값은 stateLabelMap 사용
+    dummyLabels = labels.length > 0 ? labels : Object.values(stateLabelMap);
 
     return dummyLabels;
   } catch (e) {

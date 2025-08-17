@@ -5,16 +5,23 @@ import { TeamHeader } from './TeamHeader';
 interface ColumnContainerProps {
   children: React.ReactNode;
   teamName: string;
+  open: boolean;
+  onToggle: () => void;
 }
 
-export function ColumnContainer({ teamName, children }: ColumnContainerProps) {
+export function ColumnContainer({
+  teamName,
+  children,
+  onToggle,
+  open,
+}: ColumnContainerProps) {
   return (
     <article className="flex flex-col rounded-[8px] bg-[#f5f5f5] p-[16px] font-medium">
       <TeamHeader
-        isOpened={true}
+        isOpened={open}
         projectName=""
         title={teamName}
-        onClick={() => 'test'}
+        onClick={() => onToggle()}
       />
       {children}
     </article>

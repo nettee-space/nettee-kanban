@@ -4,6 +4,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/shared/components/ui/accordion';
+import { Button } from '@/shared/components/ui/button';
+import { Icon, ICONS } from '@/shared/components/ui/icon';
 
 // components/Sidebar/ViewOptions.tsx
 
@@ -17,18 +19,28 @@ export function ViewOptions() {
         className="w-full"
       >
         <AccordionItem value="view-options" className="border-none">
-          <AccordionTrigger className="py-0 text-3xl hover:no-underline">
+          <AccordionTrigger className="text-black-8 py-0 text-xl font-semibold hover:no-underline">
             <p>보기</p>
           </AccordionTrigger>
           <AccordionContent className="overflow-visible pt-[10px] pb-0 text-2xl">
             <div>
               <div className="flex gap-[10px] p-[8px]">
-                <span className="flex h-[32px] w-[32px] items-center justify-center rounded-[4px] bg-[#ededed] p-[6px] font-bold text-[#0065FF]">
-                  P
-                </span>
-                <span className="flex h-[32px] w-[32px] items-center justify-center rounded-[4px] bg-[#ededed] p-[6px] font-bold text-[#0065FF]">
-                  G
-                </span>
+                <Button
+                  size={'icon'}
+                  className="box-content h-8 w-8 cursor-pointer p-2"
+                  type="button"
+                  variant={'secondary'}
+                >
+                  <Icon src={ICONS.pin20} />
+                </Button>
+                <Button
+                  size={'icon'}
+                  className="box-content h-8 w-8 cursor-pointer p-2"
+                  type="button"
+                  variant={'secondary'}
+                >
+                  <Icon src={ICONS.github20} />
+                </Button>
               </div>
             </div>
           </AccordionContent>

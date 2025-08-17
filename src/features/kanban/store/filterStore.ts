@@ -2,15 +2,27 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { dummyLabels, E_TeamList, projectList } from '../constants/kanban';
+import {
+  DEFAULT_PROJECT_LIST,
+  DEFAULT_TEAM_LIST,
+  dummyLabels,
+  fetchProjectList,
+  fetchTeamList,
+} from '../constants/kanban';
 import { netteeMembers } from '../constants/nettee';
 
 interface FilterState {
+  // 필터 상태
   selectedProjects: string[];
   selectedTeams: string[];
   selectedAssignees: string[];
   selectedLabels: string[];
 
+  // 데이터 목록 상태
+  teamList: [string, string][];
+  projectList: [string, string][];
+
+  // 필터 액션
   toggleProject: (project: string) => void;
   clearProjects: () => void;
   selectAllProjects: () => void;
@@ -29,6 +41,10 @@ interface FilterState {
 
   resetAllFilters: () => void;
 
+  // 데이터 로드 액션
+  loadTeamList: () => Promise<void>;
+  loadProjectList: () => Promise<void>;
+
   getFilteredData?: (data: any[]) => any[];
 }
 
@@ -39,6 +55,8 @@ export const useFilterStore = create<FilterState>()(
       selectedTeams: [],
       selectedAssignees: [],
       selectedLabels: [],
+      teamList: DEFAULT_TEAM_LIST, // 기본값
+      projectList: DEFAULT_PROJECT_LIST, // 기본값
 
       toggleProject: (project) =>
         set(
@@ -48,7 +66,7 @@ export const useFilterStore = create<FilterState>()(
             if (project === 'All') {
               newSelectedProjects = state.selectedProjects.includes('All')
                 ? []
-                : ['All', ...projectList];
+                : ['All', ...state.projectList.map(([id]) => id)];
             } else {
               const withoutAll = state.selectedProjects.filter(
                 (p) => p !== 'All'
@@ -59,8 +77,8 @@ export const useFilterStore = create<FilterState>()(
               } else {
                 const newList = [...withoutAll, project];
 
-                const allIndividualSelected = projectList.every(
-                  (p) => p === 'All' || newList.includes(p)
+                const allIndividualSelected = state.projectList.every(
+                  ([id]) => id === 'All' || newList.includes(id)
                 );
 
                 newSelectedProjects = allIndividualSelected
@@ -80,8 +98,8 @@ export const useFilterStore = create<FilterState>()(
 
       selectAllProjects: () =>
         set(
-          () => ({
-            selectedProjects: ['All', ...projectList],
+          (state) => ({
+            selectedProjects: ['All', ...state.projectList.map(([id]) => id)],
           }),
           false,
           'selectAllProjects'
@@ -91,8 +109,9 @@ export const useFilterStore = create<FilterState>()(
         set(
           (state) => {
             let newSelectedTeams;
-            const teamList = E_TeamList.map(([id]) => id);
-            console.log(team, teamList);
+            const teamList = state.teamList
+              .map(([id]) => id)
+              .filter((id: string) => id !== 'All');
 
             if (team === 'All') {
               // "All"을 클릭하면 토글 방식으로 동작
@@ -115,7 +134,7 @@ export const useFilterStore = create<FilterState>()(
                 );
                 const newList = [...withoutAll, team];
 
-                const allIndividualSelected = teamList.every((t) =>
+                const allIndividualSelected = teamList.every((t: string) =>
                   newList.includes(t)
                 );
 
@@ -135,8 +154,8 @@ export const useFilterStore = create<FilterState>()(
 
       selectAllTeams: () =>
         set(
-          () => ({
-            selectedTeams: ['All', ...E_TeamList.map(([id]) => id)],
+          (state) => ({
+            selectedTeams: ['All', ...state.teamList.map(([id]) => id)],
           }),
           false,
           'selectAllTeams'
@@ -213,6 +232,26 @@ export const useFilterStore = create<FilterState>()(
           false,
           'resetAllFilters'
         ),
+
+      loadTeamList: async () => {
+        try {
+          const teamList = await fetchTeamList();
+          set({ teamList }, false, 'loadTeamList');
+        } catch (error) {
+          console.error('팀 목록 로드 실패:', error);
+          // 기본값 유지
+        }
+      },
+
+      loadProjectList: async () => {
+        try {
+          const projectList = await fetchProjectList();
+          set({ projectList }, false, 'loadProjectList');
+        } catch (error) {
+          console.error('프로젝트 목록 로드 실패:', error);
+          // 기본값 유지
+        }
+      },
     }),
     { name: 'filter-store' }
   )
