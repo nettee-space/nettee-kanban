@@ -1,8 +1,12 @@
 import { create } from 'zustand';
+import { toKoreanDateString } from '@/shared/components/ui/datetime-picker';
 
+import {
+  stateKeyToTaskPriorityId,
+  taskPriorityIdToStateKey,
+} from '@/features/kanban/constants/kanban';
 import { useFilterStore } from '@/features/kanban/store/filterStore';
 import { IssueData } from '@/features/kanban/types/issues';
-import { taskPriorityIdToStateKey, stateKeyToTaskPriorityId } from '@/features/kanban/constants/kanban';
 import {
   createKanbanTask,
   deleteKanbanTask,
@@ -193,15 +197,19 @@ const mapKanbanTaskToIssueData = (task: KanbanTask): IssueData => {
     created_at: task.create_at || new Date().toISOString(),
     updated_at: task.update_at || new Date().toISOString(),
     progress: task.status, // KanbanTask.status -> IssueData.progress
-    sta_dt: task.started_at || new Date().toISOString(),
-    end_dt: task.ended_at || new Date().toISOString(),
+    sta_dt: task.started_at || toKoreanDateString(new Date()),
+    end_dt: task.ended_at || toKoreanDateString(new Date()),
     assignees: task.kaban_user_id ? [task.kaban_user_id] : [], // 단일 사용자를 배열로 변환
-    labels: task.task_priority_id ? [taskPriorityIdToStateKey(task.task_priority_id)] : [], // task_priority_id를 라벨로 포함
+    labels: task.task_priority_id
+      ? [taskPriorityIdToStateKey(task.task_priority_id)]
+      : [], // task_priority_id를 라벨로 포함
     parent: task.parent_task_id?.toString() || '',
     project: task.project_id ? mapProjectIdToName(task.project_id) : '', // project_id를 이름으로 변환
     team: mapTeamIdToName(task.team_id), // team_id를 이름으로 변환
     repo: task.repo_url || '',
-    task_priority: task.task_priority_id ? taskPriorityIdToStateKey(task.task_priority_id) : 'medium', // task_priority_id를 stateKey로 변환
+    task_priority: task.task_priority_id
+      ? taskPriorityIdToStateKey(task.task_priority_id)
+      : 'medium', // task_priority_id를 stateKey로 변환
     pinned: false, // KanbanTask에 pinned 필드가 없어서 기본값 사용
   };
 };
@@ -339,10 +347,10 @@ export const useIssueStore = create<IssueState>((set, get) => ({
             ).toISOString(),
             updated_at: new Date().toISOString(),
             progress: status,
-            sta_dt: new Date().toISOString(),
-            end_dt: new Date(
+            sta_dt: toKoreanDateString(new Date()),
+            end_dt: toKoreanDateString(new Date(
               Date.now() + Math.random() * 60 * 24 * 60 * 60 * 1000
-            ).toISOString(),
+            )),
             assignees: [randomAssignee],
             labels: [],
             parent: '',
@@ -440,17 +448,23 @@ export const useIssueStore = create<IssueState>((set, get) => ({
         await filterStore.loadProjectList();
       }
 
-      const fullIssueData = {
+      const newIssueData: IssueData = {
         ...issueData,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
+        sta_dt: issueData.sta_dt || toKoreanDateString(new Date()),
+        end_dt: issueData.end_dt || toKoreanDateString(new Date()),
+        sb_id: '-1',
+        id: '-1',
+        number: 0,
+        state: 'open',
       };
 
-      console.log('매핑 전 IssueData:', fullIssueData);
+      console.log('매핑 전 IssueData:', newIssueData);
       console.log('사용 가능한 팀 목록:', filterStore.teamList);
       console.log('사용 가능한 프로젝트 목록:', filterStore.projectList);
 
-      const taskData = mapIssueDataToKanbanTask(fullIssueData);
+      const taskData = mapIssueDataToKanbanTask(newIssueData);
       console.log('매핑 후 KanbanTask:', taskData);
 
       const createdTask = await createKanbanTask(taskData);

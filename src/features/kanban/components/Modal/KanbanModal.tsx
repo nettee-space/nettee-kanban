@@ -10,20 +10,24 @@ import {
 import { type DateRange } from 'react-day-picker';
 import { ko } from 'react-day-picker/locale';
 
-import Github from '@/assets/github.svg';
 import PinX from '@/assets/pinDisable.svg';
 import { Editor } from '@/shared/components/Editor';
-import { Calendar } from '@/shared/components/ui/calendar';
+import {
+  DatePicker,
+  toKoreanDateString,
+} from '@/shared/components/ui/datetime-picker';
 import { octokit } from '@/shared/lib/git-octokit';
 
+import { Checkbox } from '@/shared/components/ui/checkbox';
+import { cn } from '@/shared/lib/utils/cn';
+import { mapTeamIdToName, useIssueStore } from '@/store/issueStore';
+import { useUserStore } from '@/store/userStore';
 import { getGithubRepos } from '@/supabase/api/githubRepo';
 import { GithubRepo } from '@/supabase/types/github/repo';
-import { useIssueStore, mapProjectIdToName, mapTeamIdToName } from '@/store/issueStore';
-import { useUserStore } from '@/store/userStore';
-import { useFilterStore } from '../../store/filterStore';
 import { getStateKeyFromLabel, stateLabelMap } from '../../constants/kanban';
 import { netteeRepo } from '../../constants/nettee';
-import { IssueData, UpsertIssuePayload } from '../../types/issues';
+import { useFilterStore } from '../../store/filterStore';
+import { IssueData } from '../../types/issues';
 import { StateLabel, StateType } from '../StateLabel';
 
 type SetState<T> = Dispatch<SetStateAction<T>>;
@@ -47,7 +51,7 @@ type KanbanLabelType = keyof typeof kanbanLabel;
 
 export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
   const [loading, setLoading] = useState(false);
-  const { createIssueToSupabase } = useIssueStore();
+  const { createIssueToSupabase, updateIssueToSupabase } = useIssueStore();
   const { users, loadUsers } = useUserStore();
   const { teamList, projectList } = useFilterStore();
   const [formData, setFormData] = useState<Record<string, string>>({});
@@ -60,7 +64,9 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
 
   const [markdown, setMarkdown] = useState<string>('');
   const [githubRepos, setGithubRepos] = useState<GithubRepo[]>([]);
-  const [selectedRepo, setSelectedRepo] = useState<string>('');
+  const [selectedRepoUrl, setSelectedRepoUrl] = useState<string>(
+    item.repo || ''
+  );
   const [isGithubEnabled, setIsGithubEnabled] = useState(false);
 
   // 담당자 선택 상태 (login 값으로 저장)
@@ -68,47 +74,63 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
     item.assignees || []
   );
 
+  // 개별 날짜 선택 모드 ('start', 'end', 'range')
+  const [dateEditMode, setDateEditMode] = useState<'start' | 'end' | 'range'>(
+    'range'
+  );
+
+  // 날짜 범위 유효성 검사
+  const isDateRangeValid = () => {
+    if (!dateRange?.from || !dateRange?.to) return true;
+    return dateRange.from <= dateRange.to;
+  };
+
   // 라벨 선택 상태 (kanban 전용 라벨만)
-  const [selectedLabels, setSelectedLabels] = useState<KanbanLabelType[]>(() => {
-    const labels: KanbanLabelType[] = [];
-    
-    // item.labels에서 kanban 우선순위 라벨들 추출 (이제 task_priority가 labels에 포함됨)
-    if (item.labels) {
-      item.labels.forEach((label) => {
-        // label이 이미 state key인지 확인
-        if (label in kanbanLabel) {
-          labels.push(label as KanbanLabelType);
-        } else {
-          // 라벨 텍스트인 경우 state key로 변환
-          const stateKey = getStateKeyFromLabel(label);
-          if (stateKey in kanbanLabel) {
-            labels.push(stateKey as KanbanLabelType);
+  const [selectedLabels, setSelectedLabels] = useState<KanbanLabelType[]>(
+    () => {
+      const labels: KanbanLabelType[] = [];
+
+      // item.labels에서 kanban 우선순위 라벨들 추출 (이제 task_priority가 labels에 포함됨)
+      if (item.labels) {
+        item.labels.forEach((label) => {
+          // label이 이미 state key인지 확인
+          if (label in kanbanLabel) {
+            labels.push(label as KanbanLabelType);
+          } else {
+            // 라벨 텍스트인 경우 state key로 변환
+            const stateKey = getStateKeyFromLabel(label);
+            if (stateKey in kanbanLabel) {
+              labels.push(stateKey as KanbanLabelType);
+            }
           }
-        }
+        });
+      }
+
+      console.log('🏷️ 초기 선택된 라벨들:', {
+        itemLabels: item.labels,
+        itemTaskPriority: item.task_priority,
+        selectedLabels: labels,
       });
+
+      return labels;
     }
-    
-    console.log('🏷️ 초기 선택된 라벨들:', {
-      itemLabels: item.labels,
-      itemTaskPriority: item.task_priority,
-      selectedLabels: labels
-    });
-    
-    return labels;
-  });
+  );
 
   useEffect(() => {
-    if (dateRange && dateRange.from !== dateRange.to) {
+    if (dateRange && (dateRange.from || dateRange.to)) {
       setFormData((prev) => ({
         ...prev,
-        sta_dt: String(dateRange.from),
-        end_dt: String(dateRange.to),
+        ...(dateRange.from && { sta_dt: toKoreanDateString(dateRange.from) }),
+        ...(dateRange.to && { end_dt: toKoreanDateString(dateRange.to) }),
       }));
 
-      setFormToggle((prev) => ({
-        ...prev,
-        calendar: false,
-      }));
+      // 범위 선택이 완료되면 (from과 to가 모두 있으면) 캘린더 닫기
+      if (dateRange.from && dateRange.to) {
+        setFormToggle((prev) => ({
+          ...prev,
+          calendar: false,
+        }));
+      }
     }
 
     if (markdown) {
@@ -159,9 +181,11 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
       const body = formData.body || markdown || item.body || '';
       const progress = formData.progress || item.progress || 'TODO';
       // 동적 기본값 설정: 첫 번째 사용 가능한 프로젝트와 팀 사용
-      const defaultProject = projectList.find(([id]) => id !== 'All')?.[1] || 'Default';
-      const defaultTeam = teamList.find(([id]) => id !== 'All')?.[1] || 'Default';
-      
+      const defaultProject =
+        projectList.find(([id]) => id !== 'All')?.[1] || 'Default';
+      const defaultTeam =
+        teamList.find(([id]) => id !== 'All')?.[1] || 'Default';
+
       const project = item.project || defaultProject;
       const team = item.team || defaultTeam;
 
@@ -170,7 +194,13 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
         return;
       }
 
-      if (isGithubEnabled && !selectedRepo) {
+      // 날짜 범위 유효성 검사
+      if (!isDateRangeValid()) {
+        alert('시작일이 종료일보다 늦을 수 없습니다. 날짜를 다시 확인해주세요.');
+        return;
+      }
+
+      if (isGithubEnabled && !selectedRepoUrl) {
         alert('GitHub 연동이 활성화된 경우 저장소를 선택해주세요.');
         return;
       }
@@ -185,41 +215,56 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
           team: team,
           sta_dt:
             formData.sta_dt ||
-            (dateRange?.from ? dateRange.from.toISOString() : new Date().toISOString()),
+            (dateRange?.from
+              ? toKoreanDateString(dateRange.from)
+              : toKoreanDateString(new Date())),
           end_dt:
             formData.end_dt ||
-            (dateRange?.to ? dateRange.to.toISOString() : new Date().toISOString()),
+            (dateRange?.to
+              ? toKoreanDateString(dateRange.to)
+              : toKoreanDateString(new Date())),
           assignees: selectedAssignees,
           labels: selectedLabels.map((labelKey) => kanbanLabel[labelKey]),
-          repo: isGithubEnabled && selectedRepo ? selectedRepo : getRepo(item) || '',
-          task_priority: selectedLabels.find(label => ['hold', 'low', 'medium', 'high', 'veryhigh'].includes(label)) || 'medium',
+          repo:
+            isGithubEnabled && selectedRepoUrl
+              ? selectedRepoUrl
+              : getRepo(item) || '',
+          task_priority:
+            selectedLabels.find((label) =>
+              ['hold', 'low', 'medium', 'high', 'veryhigh'].includes(label)
+            ) || 'medium',
           // createIssueToSupabase에 필요한 추가 필드들
           html_url: `#issue-${Date.now()}`,
           state: 'open',
           parent: '',
         };
 
-        // 로컬 저장 (기존 방식)
-        addIssue(newIssueData);
+        // TODO: 로그인 유무에 따라서도 supabase 저장 여부 결정
+        if (!isGithubEnabled) {
+          // 로컬 저장 (기존 방식)
+          addIssue(newIssueData);
+        } else {
+          // Supabase에도 저장
+          try {
+            console.log('=== Supabase 저장 시작 ===');
+            console.log('원본 이슈 데이터:', newIssueData);
 
-        // Supabase에도 저장
-        try {
-          console.log('=== Supabase 저장 시작 ===');
-          console.log('원본 이슈 데이터:', newIssueData);
-          
-          const supabaseIssue = await createIssueToSupabase(newIssueData);
-          
-          if (supabaseIssue) {
-            console.log('✅ Supabase 저장 성공:', supabaseIssue);
-            alert('이슈가 성공적으로 Supabase에 저장되었습니다!');
-          } else {
-            console.warn('⚠️ Supabase 저장 실패: null 반환');
-            alert('Supabase 저장에 실패했습니다. 로컬에만 저장됩니다.');
+            const supabaseIssue = await createIssueToSupabase(newIssueData);
+
+            if (supabaseIssue) {
+              console.log('✅ Supabase 저장 성공:', supabaseIssue);
+              alert('이슈가 성공적으로 Supabase에 저장되었습니다!');
+            } else {
+              console.warn('⚠️ Supabase 저장 실패: null 반환');
+              alert('Supabase 저장에 실패했습니다. 로컬에만 저장됩니다.');
+            }
+          } catch (error) {
+            console.error('❌ Supabase 저장 중 오류:', error);
+            alert(
+              `Supabase 저장 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
+            );
+            // Supabase 저장 실패해도 로컬 저장은 유지
           }
-        } catch (error) {
-          console.error('❌ Supabase 저장 중 오류:', error);
-          alert(`Supabase 저장 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
-          // Supabase 저장 실패해도 로컬 저장은 유지
         }
 
         // 폼 초기화
@@ -228,82 +273,85 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
         setDateRange(undefined);
         setFormToggle({});
         setIsGithubEnabled(false);
-        setSelectedRepo('');
+        setSelectedRepoUrl('');
         setGithubRepos([]);
         setSelectedAssignees([]);
         setSelectedLabels([]);
         setModal(null);
       } else {
-        // 기존 방식 (수정)
-        const payload = {
-          owner: 'nettee-space',
-          repo: getRepo(item),
-          issue_number: item.number,
-          source: 'client',
-          action: 'update',
-          issue: {
-            title: title,
-            body: body,
-            assignees: selectedAssignees,
-            labels: [],
-            progress: progress,
-            sta_dt: formData.sta_dt ?? item.sta_dt,
-            end_dt: formData.end_dt ?? item.end_dt,
-          },
+        // 수정 모드 - updateIssueToSupabase 사용
+        if (!item.number) {
+          alert('이슈 ID가 없어 수정할 수 없습니다.');
+          return;
+        }
+        console.log('확인 ', formData.end_dt, dateRange?.to);
+        const updateData = {
+          title: title.trim(),
+          body: body,
+          progress: progress,
+          project: project,
+          team: team,
+          sta_dt:
+            formData.sta_dt ||
+            (dateRange?.from
+              ? toKoreanDateString(dateRange.from)
+              : item.sta_dt),
+          end_dt:
+            formData.end_dt ||
+            (dateRange?.to ? toKoreanDateString(dateRange.to) : item.end_dt),
+          assignees: selectedAssignees,
+          labels: selectedLabels.map((labelKey) => kanbanLabel[labelKey]),
+          repo:
+            isGithubEnabled && selectedRepoUrl
+              ? selectedRepoUrl
+              : formData.repo || item.repo || '',
+          task_priority:
+            selectedLabels.find((label) =>
+              ['hold', 'low', 'medium', 'high', 'veryhigh'].includes(label)
+            ) ||
+            item.task_priority ||
+            'medium',
         };
 
-        upsertTable(payload);
+        try {
+          console.log('=== Supabase 수정 시작 ===');
+          console.log('수정할 이슈 ID:', item.number);
+          console.log('수정 데이터:', updateData);
+
+          const updatedIssue = await updateIssueToSupabase(
+            item.number,
+            updateData
+          );
+
+          if (updatedIssue) {
+            console.log('✅ Supabase 수정 성공:', updatedIssue);
+            alert('이슈가 성공적으로 수정되었습니다!');
+          } else {
+            console.warn('⚠️ Supabase 수정 실패: null 반환');
+            alert('이슈 수정에 실패했습니다.');
+          }
+        } catch (error) {
+          console.error('❌ Supabase 수정 중 오류:', error);
+          alert(
+            `이슈 수정 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
+          );
+        }
+
+        // 폼 초기화
+        setFormData({});
+        setMarkdown('');
+        setDateRange(undefined);
+        setFormToggle({});
+        setIsGithubEnabled(false);
+        setSelectedRepoUrl('');
+        setGithubRepos([]);
+        setSelectedAssignees([]);
+        setSelectedLabels([]);
+        setModal(null);
       }
     } catch (error) {
       console.error('이슈 저장 중 오류:', error);
       alert('이슈 저장 중 오류가 발생했습니다.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const upsertTable = async (payload: UpsertIssuePayload) => {
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/nettee-function`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-github-event': 'issues',
-          },
-          body: JSON.stringify(payload),
-        }
-      );
-
-      const issue = await response.json();
-      console.log(issue);
-
-      // TODO: zustand로 관리되는 로컬값 수정
-      // setIssues((prev) => {
-      //   const updated: GroupedIssues = { ...prev };
-
-      //   const project = item.project;
-      //   const team = item.team;
-      //   const progress = (item.progress ?? 'TODO') as KanbanProgress;
-
-      //   if (!project || !team || !progress) return prev; // fallback
-
-      //   const status: KanbanProgress[] = ['TODO', 'DOING', 'DONE'];
-      //   for (const key of status) {
-      //     updated[project][team][key] = updated[project][team][key].filter(
-      //       (i) => i.number !== issue.data.number
-      //     );
-      //   }
-
-      //   updated[project][team][progress].unshift(issue.data);
-
-      //   return updated;
-      // });
-
-      setModal(null);
-    } catch (error) {
-      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -341,7 +389,6 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
       })
     );
 
-    console.log(contents);
     return contents;
   };
 
@@ -375,10 +422,13 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
               <img src={PinX} />
             </div>
 
-            <p className="flex gap-[4px] font-semibold">
-              {item.project && (isNaN(Number(item.project)) ? item.project : mapProjectIdToName(item.project))} 
-              <span className="text-[12px]">▶</span> 
-              {item.team && (isNaN(Number(item.team)) ? item.team : mapTeamIdToName(item.team))}
+            <p className="flex items-center gap-[4px] font-bold">
+              {item.project}
+              <Icon src={ICONS.rightAbled32} />
+              {item.team &&
+                (isNaN(Number(item.team))
+                  ? item.team
+                  : mapTeamIdToName(item.team))}
             </p>
           </div>
 
@@ -393,7 +443,7 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
             {/* 진행상태 선택하는 드롭다운 메뉴*/}
             <div className="relative flex w-full max-w-[420px] flex-col">
               <div className="flex items-center gap-[8px]">
-                <p className="w-full max-w-[52px] text-[14px] text-[#646464]">
+                <p className="w-full max-w-[52px] text-xs text-[#646464]">
                   진행상태
                 </p>
 
@@ -455,35 +505,102 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
             {/* 작업기간 선택하는 캘린더 메뉴 */}
             <div className="relative flex w-full max-w-[560px] flex-col">
               <div className="flex items-center gap-[8px]">
-                <p className="w-full max-w-[52px] text-[14px] text-[#646464]">
+                <p
+                  className="w-full max-w-[52px] cursor-pointer text-xs text-[#646464] transition-colors hover:text-[#444444]"
+                  onClick={() => {
+                    setDateEditMode('range');
+                    handleFormToggle('calendar');
+                  }}
+                  title="범위 선택"
+                >
                   작업기간
                 </p>
 
-                <div
-                  className="flex w-full cursor-pointer items-center gap-[8px]"
-                  onClick={() => handleFormToggle('calendar')}
-                >
-                  <div className="flex h-[32px] w-full items-center justify-between rounded-[4px] border-2 border-[#DBDBDB] px-[12px] py-[6px]">
-                    <p>
-                      {dateRange?.from?.toLocaleDateString() ?? '날짜 선택'}
+                <div className="flex w-full flex-col gap-[4px]">
+                  <div className="flex w-full items-center gap-[8px]">
+                    <div
+                      className={`flex h-[32px] w-full cursor-pointer items-center justify-between rounded-[4px] border-2 px-[12px] py-[6px] ${
+                        !isDateRangeValid() ? 'border-red-500 bg-red-50' : 'border-[#DBDBDB]'
+                      }`}
+                      onClick={() => {
+                        setDateEditMode('start');
+                        handleFormToggle('calendar');
+                      }}
+                    >
+                      <p className={!isDateRangeValid() ? 'text-red-600' : ''}>
+                        {dateRange?.from?.toLocaleDateString('ko-KR') ??
+                          '시작일 선택'}
+                      </p>
+                      <CalendarIcon size={16} className={!isDateRangeValid() ? 'text-red-500' : ''} />
+                    </div>
+                    <span>~</span>
+                    <div
+                      className={`flex h-[32px] w-full cursor-pointer items-center justify-between rounded-[4px] border-2 px-[12px] py-[6px] ${
+                        !isDateRangeValid() ? 'border-red-500 bg-red-50' : 'border-[#DBDBDB]'
+                      }`}
+                      onClick={() => {
+                        setDateEditMode('end');
+                        handleFormToggle('calendar');
+                      }}
+                    >
+                      <p className={!isDateRangeValid() ? 'text-red-600' : ''}>
+                        {dateRange?.to?.toLocaleDateString('ko-KR') ??
+                          '종료일 선택'}{' '}
+                      </p>
+                      <CalendarIcon size={16} className={!isDateRangeValid() ? 'text-red-500' : ''} />
+                    </div>
+                  </div>
+                  {!isDateRangeValid() && (
+                    <p className="text-xs text-red-500 px-2">
+                      ⚠️ 시작일이 종료일보다 늦습니다. 날짜를 다시 확인해주세요.
                     </p>
-                    <CalendarIcon size={16} />
-                  </div>
-                  <span>~</span>
-                  <div className="flex h-[32px] w-full items-center justify-between rounded-[4px] border-2 border-[#DBDBDB] px-[12px] py-[6px]">
-                    <p>{dateRange?.to?.toLocaleDateString() ?? '날짜 선택'} </p>
-                    <CalendarIcon size={16} />
-                  </div>
+                  )}
                 </div>
               </div>
 
               {formToggle['calendar'] && (
-                <Calendar
-                  mode="range"
+                <DatePicker
+                  mode={dateEditMode === 'range' ? 'range' : 'single'}
                   defaultMonth={dateRange?.from}
-                  selected={dateRange}
-                  onSelect={setDateRange}
-                  className="absolute top-[40px] z-10 h-[356px] w-[284px] self-center rounded-[8px] border shadow-[0_4px_12px_rgba(0,0,0,0.15)]"
+                  selected={
+                    dateEditMode === 'range'
+                      ? dateRange
+                      : dateEditMode === 'start'
+                        ? dateRange?.from
+                        : dateRange?.to
+                  }
+                  onSelect={(date) => {
+                    if (dateEditMode === 'start') {
+                      // 시작일만 수정
+                      setDateRange((prev) => ({
+                        from: date as Date,
+                        to: prev?.to,
+                      }));
+                      setFormToggle((prev) => ({ ...prev, calendar: false }));
+                    } else if (dateEditMode === 'end') {
+                      // 종료일만 수정
+                      setDateRange((prev) => ({
+                        from: prev?.from,
+                        to: date as Date,
+                      }));
+                      setFormToggle((prev) => ({ ...prev, calendar: false }));
+                    } else {
+                      // 범위 선택 (기존 동작)
+                      setDateRange(date as any);
+                      if (
+                        date &&
+                        typeof date === 'object' &&
+                        'from' in date &&
+                        date.from &&
+                        date.to
+                      ) {
+                        setFormToggle((prev) => ({ ...prev, calendar: false }));
+                      }
+                    }
+                    // 다음 선택을 위해 범위 모드로 리셋
+                    setDateEditMode('range');
+                  }}
+                  className="absolute top-[40px] z-10 w-[300px] self-center"
                   locale={ko}
                 />
               )}
@@ -492,7 +609,7 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
             {/* 깃허브 템플릿 선택하는 드롭다운 메뉴*/}
             <div className="relative flex w-full max-w-[420px] flex-col">
               <div className="flex items-center gap-[8px]">
-                <p className="w-full max-w-[52px] text-[14px] text-[#646464]">
+                <p className="w-full max-w-[52px] text-xs text-[#646464]">
                   템플릿
                 </p>
 
@@ -520,18 +637,22 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
             {/* 깃연동 체크하는 드롭다운 메뉴*/}
             <div className="relative flex w-full max-w-[560px] flex-col">
               <div className="flex items-center gap-[8px]">
-                <label className="flex h-[32px] w-full max-w-[140px] items-center justify-center gap-[4px] rounded-[8px] bg-[#F0F6FF] p-[8px] text-[#0065FF]">
-                  <input
-                    type="checkbox"
-                    className="h-[16px] w-[16px]"
+                <label
+                  className={cn(
+                    'flex h-[32px] w-full max-w-[140px] cursor-pointer items-center justify-center gap-[4px] rounded-[8px] p-[8px] duration-100 hover:bg-gray-100',
+                    isGithubEnabled ? `text-primary-12 bg-primary-3` : ''
+                  )}
+                >
+                  <Checkbox
                     checked={isGithubEnabled}
-                    onChange={(e) => {
-                      setIsGithubEnabled(e.target.checked);
-                      if (e.target.checked) {
+                    onCheckedChange={(checked) => {
+                      const isChecked = checked === true;
+                      setIsGithubEnabled(isChecked);
+                      if (isChecked) {
                         loadGithubRepos();
                       } else {
                         // GitHub 연동 해제 시 선택된 저장소와 드롭다운 상태 초기화
-                        setSelectedRepo('');
+                        setSelectedRepoUrl(item.repo || '');
                         setFormToggle((prev) => ({ ...prev, github: false }));
                         setFormData((prev) => {
                           const { repo, ...rest } = prev;
@@ -540,8 +661,13 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
                       }
                     }}
                   />
-                  <img src={Github} />
-                  <p>GitHub 연동</p>
+                  {/* // ! SVGR를 사용하는 형식이 아니어서 SVG 색 변경이 불가 */}
+                  <Icon
+                    src={ICONS.github20}
+                    alt="github icon"
+                    className={isGithubEnabled ? '' : 'opacity-50'}
+                  />
+                  <p className="text-xs font-semibold">GitHub 연동</p>
                 </label>
 
                 <div
@@ -553,9 +679,14 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
                   onClick={() => isGithubEnabled && handleFormToggle('github')}
                 >
                   <p
-                    className={isGithubEnabled ? 'text-black' : 'text-gray-400'}
+                    className={cn(
+                      '',
+                      isGithubEnabled ? 'text-black' : 'text-gray-400'
+                    )}
                   >
-                    {selectedRepo || '저장소 선택'}
+                    {selectedRepoUrl 
+                      ? selectedRepoUrl.split('.com/')[1] || selectedRepoUrl
+                      : '저장소 선택'}
                   </p>
 
                   <Icon
@@ -584,23 +715,23 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
                           key={repo.id}
                           className="flex cursor-pointer items-center justify-between border-b border-gray-100 px-[12px] py-[8px] last:border-b-0 hover:bg-gray-50"
                           onClick={() => {
-                            setSelectedRepo(repo.repo_name);
+                            setSelectedRepoUrl(repo.repo_url);
                             setFormData((prev) => ({
                               ...prev,
-                              repo: repo.repo_name,
+                              repo: repo.repo_url,
                             }));
                             handleFormToggle('github');
                           }}
                         >
                           <div className="flex min-w-0 flex-1 flex-col">
-                            <p className="truncate text-[14px] font-medium">
+                            <p className="truncate text-xs font-medium">
                               {repo.repo_name}
                             </p>
                             <p className="text-[12px] text-gray-500">
                               Team ID: {repo.team_id}
                             </p>
                           </div>
-                          {selectedRepo === repo.repo_name && (
+                          {selectedRepoUrl === repo.repo_url && (
                             <div className="ml-2 flex-shrink-0">
                               <Icon
                                 src={ICONS.checkCircle20}
@@ -613,7 +744,7 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
                       ))}
                     </div>
                   ) : (
-                    <div className="px-[12px] py-[8px] text-[14px] text-gray-500">
+                    <div className="px-[12px] py-[8px] text-xs text-gray-500">
                       저장소를 불러오는 중...
                     </div>
                   )}
@@ -624,7 +755,7 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
             {/* 칸반 이슈 타이틀 */}
             <div className="w-full">
               <label className="flex flex-col gap-[4px]">
-                <p className="text-[14px] text-[#939393]">제목</p>
+                <p className="text-xs text-[#939393]">제목</p>
                 <input
                   type="text"
                   className="h-[40px] w-full rounded-[8px] bg-[#F5F5F5] px-[12px] py-[8px]"
@@ -638,7 +769,7 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
             {/* 칸반 이슈 내용 에디터 */}
             <div className="w-full">
               <label className="flex flex-col gap-[4px]">
-                <p className="text-[14px] text-[#939393]">상세 내용</p>
+                <p className="text-xs text-[#939393]">상세 내용</p>
                 <div className="h-[320px] w-full overflow-auto">
                   <Editor content={item.body} setMarkdown={setMarkdown} />
                 </div>
@@ -648,12 +779,17 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
             {/* 담당자 선택 */}
             <div className="relative flex w-full flex-col">
               <div className="flex items-center gap-[8px]">
-                <p className="w-full max-w-[52px] text-[14px] text-[#646464]">
-                  담당자
+                <p
+                  className="w-full max-w-[52px] text-xs text-[#646464]"
+                  style={{
+                    letterSpacing: '-0.6px',
+                  }}
+                >
+                  담당자 추가
                 </p>
 
                 <div
-                  className="flex h-[32px] w-full max-w-[200px] cursor-pointer items-center justify-between rounded-[4px] border-2 border-[#DBDBDB] px-[12px] py-[6px]"
+                  className="flex h-[32px] w-full max-w-[160px] cursor-pointer items-center justify-between rounded-[4px] border-2 border-[#DBDBDB] px-[12px] py-[6px]"
                   onClick={() => handleFormToggle('assignee')}
                 >
                   <p className="truncate">
@@ -670,15 +806,16 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
                 </div>
 
                 {/* 선택된 담당자 목록 표시 */}
-                <div className="flex min-w-0 flex-1 flex-wrap gap-[4px]">
+                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+                  <p className="text-xs">담당자 </p>
                   {selectedAssignees.map((login) => {
-                    const user = users.find(u => u.login === login);
+                    const user = users.find((u) => u.login === login);
                     return (
                       <span
                         key={login}
                         className="inline-flex items-center rounded-md bg-blue-100 py-1 pr-[4px] pl-[12px] text-xs text-blue-800"
                       >
-                        <p className="text-xl font-medium">
+                        <p className="text-xs font-medium">
                           {user?.real_name || login}
                         </p>
                         <span
@@ -705,18 +842,18 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
                     {teamList
                       .filter(([id]) => id !== 'All')
                       .map(([teamId, teamName]) => {
-                        const teamUsers = users.filter(user => 
+                        const teamUsers = users.filter((user) =>
                           user.team_id.includes(parseInt(teamId))
                         );
-                        
+
                         if (teamUsers.length === 0) return null;
-                        
+
                         return (
                           <div
                             key={teamId}
                             className="border-b border-gray-100 last:border-b-0"
                           >
-                            <div className="bg-gray-50 px-3 py-2 text-sm font-medium text-gray-700">
+                            <div className="bg-gray-50 px-3 py-2 text-xs font-medium text-gray-700">
                               {teamName}
                             </div>
                             {teamUsers.map((user) => (
@@ -726,7 +863,9 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
                                 onClick={() => {
                                   setSelectedAssignees((prev) => {
                                     if (prev.includes(user.login)) {
-                                      return prev.filter((a) => a !== user.login);
+                                      return prev.filter(
+                                        (a) => a !== user.login
+                                      );
                                     } else {
                                       return [...prev, user.login];
                                     }
@@ -734,13 +873,23 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
                                 }}
                               >
                                 <div className="flex flex-col">
-                                  <span className="text-[14px] font-medium">{user.real_name}</span>
-                                  <span className="text-[12px] text-gray-500">@{user.login}</span>
+                                  <span className="text-xs font-medium">
+                                    {user.real_name}
+                                  </span>
+                                  <span className="text-[12px] text-gray-500">
+                                    @{user.login}
+                                  </span>
                                   {user.team_id.length > 1 && (
                                     <span className="text-[10px] text-blue-600">
-                                      다중 팀: {user.team_id.map(id => 
-                                        teamList.find(([tId]) => tId === id.toString())?.[1] || id
-                                      ).join(', ')}
+                                      다중 팀:{' '}
+                                      {user.team_id
+                                        .map(
+                                          (id) =>
+                                            teamList.find(
+                                              ([tId]) => tId === id.toString()
+                                            )?.[1] || id
+                                        )
+                                        .join(', ')}
                                     </span>
                                   )}
                                 </div>
@@ -764,7 +913,7 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
             {/* 라벨 추가 */}
             <div className="relative flex w-full flex-col">
               <div className="flex items-center gap-[8px]">
-                <p className="w-full max-w-[52px] text-[14px] text-[#646464]">
+                <p className="w-full max-w-[52px] text-xs text-[#646464]">
                   라벨 추가
                 </p>
 
@@ -786,7 +935,8 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
                 </div>
 
                 {/* 선택된 라벨 목록 표시 */}
-                <div className="flex min-w-0 flex-1 flex-wrap gap-[4px]">
+                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-[4px]">
+                  <p className="text-xs">라벨</p>
                   {selectedLabels.map((labelKey) => (
                     <StateLabel
                       key={labelKey}
@@ -799,7 +949,7 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
                         )
                       }
                     >
-                      <p className="text-xl font-medium">
+                      <p className="text-xs font-medium">
                         {kanbanLabel[labelKey]}
                       </p>
                       <Icon src={ICONS.delete24} />
@@ -859,7 +1009,7 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
         {/* 서브밋 버튼 */}
         <div className="flex justify-end border-t border-gray-200 bg-white p-[16px]">
           <button
-            className="h-[36px] w-[224px] rounded-[8px] bg-[#0065FF] text-[14px] text-white duration-200 hover:bg-black disabled:bg-black"
+            className="h-[36px] w-[224px] rounded-[8px] bg-[#0065FF] text-xs text-white duration-200 hover:bg-black disabled:bg-black"
             type="submit"
             disabled={loading}
           >
