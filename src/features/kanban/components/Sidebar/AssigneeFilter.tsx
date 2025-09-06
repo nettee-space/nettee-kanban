@@ -16,15 +16,15 @@ import { useUserStore } from '@/store/userStore';
 import { useFilterStore } from '../../store/filterStore';
 
 export function AssigneeFilter() {
-  const { 
-    selectedTeams, 
-    selectedAssignees, 
-    toggleTeam, 
+  const {
+    selectedTeams,
+    selectedAssignees,
+    toggleTeam,
     toggleAssignee,
     teamList,
-    loadTeamList 
+    loadTeamList,
   } = useFilterStore();
-  
+
   const { users, loadUsers } = useUserStore();
 
   useEffect(() => {
@@ -40,9 +40,7 @@ export function AssigneeFilter() {
   const teamMembers = selectedTeams.includes('All')
     ? users
     : selectedTeams.flatMap((teamId) => {
-        return users.filter(user => 
-          user.team_id.includes(parseInt(teamId))
-        );
+        return users.filter((user) => user.team_id.includes(parseInt(teamId)));
       });
 
   return (
@@ -54,18 +52,18 @@ export function AssigneeFilter() {
         className="w-full"
       >
         <AccordionItem value="assignee" className="border-none">
-          <AccordionTrigger className="text-black-8 py-0 text-xl font-semibold hover:no-underline">
+          <AccordionTrigger className="text-black-8 py-0 text-sm font-semibold hover:no-underline">
             <p>담당자</p>
           </AccordionTrigger>
 
-          <AccordionContent className="overflow-visible pt-[10px] pb-0 text-2xl">
+          <AccordionContent className="overflow-visible pt-[10px] pb-0 text-sm">
             <div className="flex flex-wrap gap-[8px] pt-[8px] pb-[16px]">
               {teamObjects.map((team) => (
                 <Button
                   key={`${team.id}_button`}
                   type="button"
                   variant={'default'}
-                  className={`flex h-[28px] w-[60px] cursor-pointer items-center justify-center text-xl ${
+                  className={`flex h-[28px] w-[60px] cursor-pointer items-center justify-center text-xs ${
                     selectedTeams.includes(team.id)
                       ? 'bg-primary-12 text-white'
                       : 'text-black-7 bg-[#ededed]'
@@ -81,7 +79,10 @@ export function AssigneeFilter() {
               {teamMembers.map((user) => {
                 const checked = selectedAssignees.includes(user.login);
                 return (
-                  <li key={`${user.login}_assignee`} className="px-[8px] py-[4px]">
+                  <li
+                    key={`${user.login}_assignee`}
+                    className="px-[8px] py-[4px]"
+                  >
                     <label
                       className={cn(
                         'flex cursor-pointer items-center gap-[8px] font-medium',
@@ -102,13 +103,23 @@ export function AssigneeFilter() {
                         alt={`${user.real_name}-github-profile`}
                       />
                       <div className="flex flex-col">
-                        <span className="text-sm font-medium">{user.real_name}</span>
-                        <span className="text-xs text-gray-500">@{user.login}</span>
+                        <span className="text-sm font-medium">
+                          {user.real_name}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          @{user.login}
+                        </span>
                         {user.team_id.length > 1 && (
                           <span className="text-xs text-blue-600">
-                            다중 팀: {user.team_id.map(id => 
-                              teamList.find(([tId]) => tId === id.toString())?.[1] || id
-                            ).join(', ')}
+                            다중 팀:{' '}
+                            {user.team_id
+                              .map(
+                                (id) =>
+                                  teamList.find(
+                                    ([tId]) => tId === id.toString()
+                                  )?.[1] || id
+                              )
+                              .join(', ')}
                           </span>
                         )}
                       </div>

@@ -19,15 +19,15 @@ export function ViewOptions() {
         className="w-full"
       >
         <AccordionItem value="view-options" className="border-none">
-          <AccordionTrigger className="text-black-8 py-0 text-xl font-semibold hover:no-underline">
+          <AccordionTrigger className="text-black-8 py-0 text-sm font-semibold hover:no-underline">
             <p>보기</p>
           </AccordionTrigger>
-          <AccordionContent className="overflow-visible pt-[10px] pb-0 text-2xl">
+          <AccordionContent className="overflow-visible pt-[10px] pb-0 text-sm">
             <div>
               <div className="flex gap-[10px] p-[8px]">
                 <Button
                   size={'icon'}
-                  className="box-content h-8 w-8 cursor-pointer p-2"
+                  className="h-8 w-8 cursor-pointer p-2"
                   type="button"
                   variant={'secondary'}
                 >
@@ -35,7 +35,7 @@ export function ViewOptions() {
                 </Button>
                 <Button
                   size={'icon'}
-                  className="box-content h-8 w-8 cursor-pointer p-2"
+                  className="h-8 w-8 cursor-pointer p-2"
                   type="button"
                   variant={'secondary'}
                 >

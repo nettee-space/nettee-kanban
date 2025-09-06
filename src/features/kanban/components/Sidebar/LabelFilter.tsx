@@ -40,10 +40,10 @@ export function LabelFilter() {
         className="w-full"
       >
         <AccordionItem value="label" className="border-none">
-          <AccordionTrigger className="text-black-8 py-0 text-xl font-semibold hover:no-underline">
+          <AccordionTrigger className="text-black-8 py-0 text-sm font-semibold hover:no-underline">
             <p>라벨 선택</p>
           </AccordionTrigger>
-          <AccordionContent className="overflow-visible pt-[10px] pb-0 text-2xl">
+          <AccordionContent className="overflow-visible pt-[10px] pb-0 text-sm">
             <div>
               <div className="flex flex-wrap gap-[8px] p-[8px]">
                 {labelObjects.map((label) => {

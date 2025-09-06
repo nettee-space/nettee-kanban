@@ -13,7 +13,8 @@ import { cn } from '@/shared/lib/utils/cn';
 import { useFilterStore } from '../../store/filterStore';
 
 export function TeamFilter() {
-  const { selectedTeams, toggleTeam, teamList, loadTeamList } = useFilterStore();
+  const { selectedTeams, toggleTeam, teamList, loadTeamList } =
+    useFilterStore();
 
   useEffect(() => {
     loadTeamList();
@@ -30,10 +31,10 @@ export function TeamFilter() {
         className="w-full"
       >
         <AccordionItem value="team" className="border-none">
-          <AccordionTrigger className="text-black-8 py-0 text-xl font-semibold hover:no-underline">
+          <AccordionTrigger className="text-black-8 py-0 text-sm font-semibold hover:no-underline">
             <p>팀 선택</p>
           </AccordionTrigger>
-          <AccordionContent className="overflow-visible pt-[10px] pb-0 text-2xl">
+          <AccordionContent className="overflow-visible pt-[10px] pb-0 text-sm">
             <ul>
               {teamObjects.map((team) => {
                 const checked = selectedTeams.includes(team.id);
