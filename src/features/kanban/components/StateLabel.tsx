@@ -8,7 +8,7 @@ import { stateLabelMap } from '../constants/kanban';
 // StateLabel에서 사용할 수 있는 state 타입
 export type StateType = keyof typeof stateLabelMap;
 
-const stateLabelVariants = cva('', {
+const stateLabelVariants = cva('text-sm px-3 py-0.5 ', {
   variants: {
     state: {
       todo: [

@@ -114,13 +114,13 @@ export const createKanbanTask = async (
   task: Partial<KanbanTask>
 ): Promise<KanbanTask | null> => {
   if (isGuest) return null;
-
+  console.log('createKanbanTask task:', task);
   const { data, error } = await supabase
     .from('kanban_task')
     .insert(task)
     .select()
     .single();
-
+  console.log('createKanbanTask data:', data, 'error:', error);
   if (error) throw error;
   return data;
 };
