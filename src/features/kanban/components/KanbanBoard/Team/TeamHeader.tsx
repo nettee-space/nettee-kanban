@@ -17,12 +17,12 @@ export function TeamHeader({
 }: TeamHeaderProps) {
   // title이 ID인 경우 이름으로 변환, 이미 이름인 경우 그대로 사용
   const displayTitle = isNaN(Number(title)) ? title : mapTeamIdToName(title);
-  
+
   console.log(`🎯 TeamHeader: "${title}" → "${displayTitle}"`);
-  
+
   return (
-    <div className="flex justify-between">
-      <p className="text-[16px] font-semibold">{displayTitle}</p>
+    <div className="flex items-center justify-between">
+      <span className="font-semibold">{displayTitle}</span>
       <Button
         type="button"
         variant={'ghost'}

@@ -4,8 +4,9 @@ import { Fragment, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { useDragAndDrop } from '@/features/kanban/hooks/useDragAndDrop';
-import { Divider } from '@/shared/components/ui/divider';
 
+import { Icon, ICONS } from '@/shared/components/ui/icon';
+import { cn } from '@/shared/lib/utils/cn';
 import { kanbanStyleMap } from '../../../constants/kanban';
 import { IssueData } from '../../../types/issues';
 import { KanbanModal } from '../../Modal/KanbanModal';
@@ -79,9 +80,9 @@ export function KanbanColumn({
     >
       {/* 컬럼 헤더 */}
       <div className="flex items-center justify-between px-[8px]">
-        <div className="flex gap-[8px]">
-          <p>{progress}</p>
-          <p className={style.text}>{totalCount}</p>
+        <div className="flex gap-[8px] font-semibold">
+          <p className="text-sm leading-[140%]">{progress}</p>
+          <p className={cn('text-sm', style.text)}>{totalCount}</p>
         </div>
         <div className="flex gap-[8px]">
           {progress === 'DONE' && (
@@ -113,7 +114,7 @@ export function KanbanColumn({
         ))} */}
       </div>
       {/* 구분선 */}
-      <Divider />
+      {/* <Divider /> */}
       {/* 일반 카드들 */}
       <ul
         className="flex flex-1 flex-col"
@@ -121,24 +122,37 @@ export function KanbanColumn({
         onDragOver={(e) => handleDragOver(e, progress)}
         onDragLeave={() => handleDragLeave(progress)}
       >
-        {issues.map((item, index) => (
-          <Fragment key={item.id}>
-            <DropIndicator beforeId={item.id} progress={item.progress} />
-            <KanbanCard
-              item={{
-                ...item,
-                cardIndex: String(index),
-              }}
-              columnId={progress}
-              project={project}
-              team={team}
-              isPinned={false}
-              onDragStart={handleDragStart}
-              // onPin={(_) => onPin(project, team, progress, item.id)}
-              onOpenModal={() => setModalItem(item)}
+        {issues.length === 0 ? (
+          <div className="flex flex-1 items-center justify-center text-sm text-gray-400">
+            <Icon
+              src={ICONS.errorGray24}
+              className=""
+              size={16}
+              alt="selected"
             />
-          </Fragment>
-        ))}
+            <span>일정이 없습니다.</span>
+          </div>
+        ) : (
+          // 이슈가 있을 때 기존 로직
+          issues.map((item, index) => (
+            <Fragment key={item.id}>
+              <DropIndicator beforeId={item.id} progress={item.progress} />
+              <KanbanCard
+                item={{
+                  ...item,
+                  cardIndex: String(index),
+                }}
+                columnId={progress}
+                project={project}
+                team={team}
+                isPinned={false}
+                onDragStart={handleDragStart}
+                // onPin={(_) => onPin(project, team, progress, item.id)}
+                onOpenModal={() => setModalItem(item)}
+              />
+            </Fragment>
+          ))
+        )}
         <DropIndicator beforeId={null} progress={progress} />
       </ul>
       {/* Modal을 컬럼 외부에서 한 번만 렌더링 */}
