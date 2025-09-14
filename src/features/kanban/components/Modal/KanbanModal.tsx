@@ -1,4 +1,3 @@
-import { Icon, ICONS } from '@/shared/components/ui/icon';
 import { CalendarIcon, XIcon } from 'lucide-react';
 import {
   Dispatch,
@@ -12,18 +11,20 @@ import { ko } from 'react-day-picker/locale';
 
 import PinX from '@/assets/pinDisable.svg';
 import { Editor } from '@/shared/components/Editor';
+import { Checkbox } from '@/shared/components/ui/checkbox';
 import {
   DatePicker,
   toKoreanDateString,
 } from '@/shared/components/ui/datetime-picker';
-import { octokit } from '@/shared/lib/git-octokit';
-
-import { Checkbox } from '@/shared/components/ui/checkbox';
+import { Icon, ICONS } from '@/shared/components/ui/icon';
 import { cn } from '@/shared/lib/utils/cn';
 import { mapTeamIdToName, useIssueStore } from '@/store/issueStore';
 import { useUserStore } from '@/store/userStore';
+import { getGithubIssueTemplates } from '@/supabase/api/githubIssueTemplate';
 import { getGithubRepos } from '@/supabase/api/githubRepo';
+import { GithubIssueTemplate } from '@/supabase/types/github/issue-template';
 import { GithubRepo } from '@/supabase/types/github/repo';
+
 import { getStateKeyFromLabel, stateLabelMap } from '../../constants/kanban';
 import { netteeRepo } from '../../constants/nettee';
 import { useFilterStore } from '../../store/filterStore';
@@ -68,6 +69,10 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
     item.repo || ''
   );
   const [isGithubEnabled, setIsGithubEnabled] = useState(false);
+  const [templates, setTemplates] = useState<GithubIssueTemplate[]>([]);
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<GithubIssueTemplate | null>(null);
+  const [title, setTitle] = useState<string>(item.title || '');
 
   // 담당자 선택 상태 (login 값으로 저장)
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>(
@@ -174,10 +179,9 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
     setLoading(true);
 
     try {
-      const getForm = new FormData(e.currentTarget);
       const isNew = !item.number || item.number === 0;
 
-      const title = getForm.get('title') as string;
+      const titleValue = title.trim();
       const body = formData.body || markdown || item.body || '';
       const progress = formData.progress || item.progress || 'TODO';
       // 동적 기본값 설정: 첫 번째 사용 가능한 프로젝트와 팀 사용
@@ -189,14 +193,16 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
       const project = item.project || defaultProject;
       const team = item.team || defaultTeam;
 
-      if (!title.trim()) {
+      if (!titleValue) {
         alert('제목을 입력해주세요.');
         return;
       }
 
       // 날짜 범위 유효성 검사
       if (!isDateRangeValid()) {
-        alert('시작일이 종료일보다 늦을 수 없습니다. 날짜를 다시 확인해주세요.');
+        alert(
+          '시작일이 종료일보다 늦을 수 없습니다. 날짜를 다시 확인해주세요.'
+        );
         return;
       }
 
@@ -208,7 +214,7 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
       if (isNew && addIssue) {
         // 새 이슈 데이터 준비
         const newIssueData = {
-          title: title.trim(),
+          title: titleValue,
           body: body,
           progress: progress,
           project: project,
@@ -277,6 +283,9 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
         setGithubRepos([]);
         setSelectedAssignees([]);
         setSelectedLabels([]);
+        setTemplates([]);
+        setSelectedTemplate(null);
+        setTitle('');
         setModal(null);
       } else {
         // 수정 모드 - updateIssueToSupabase 사용
@@ -286,7 +295,7 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
         }
         console.log('확인 ', formData.end_dt, dateRange?.to);
         const updateData = {
-          title: title.trim(),
+          title: titleValue,
           body: body,
           progress: progress,
           project: project,
@@ -347,6 +356,9 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
         setGithubRepos([]);
         setSelectedAssignees([]);
         setSelectedLabels([]);
+        setTemplates([]);
+        setSelectedTemplate(null);
+        setTitle('');
         setModal(null);
       }
     } catch (error) {
@@ -367,31 +379,6 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
   // const optionProgress = ['TODO', 'DOING', 'DONE', 'CHECKED'];
   const optionProgress = ['TODO', 'DOING', 'DONE'];
 
-  const getTemplateContents = async () => {
-    const res = await octokit.rest.repos.getContent({
-      owner: 'nettee-space',
-      repo: item.repo ?? 'test-repo',
-      path: '.github/ISSUE_TEMPLATE',
-    });
-
-    if (!Array.isArray(res.data)) return [];
-
-    const markdownFiles = res.data.filter((f) => f.name.endsWith('.md'));
-
-    const contents = await Promise.all(
-      markdownFiles.map(async (file) => {
-        const res = await fetch(file.download_url as string);
-        const content = await res.text();
-        return {
-          name: file.name,
-          content,
-        };
-      })
-    );
-
-    return contents;
-  };
-
   const loadGithubRepos = async () => {
     try {
       const repos = await getGithubRepos();
@@ -404,6 +391,79 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
     } catch (error) {
       console.error('GitHub 저장소 목록 로드 실패:', error);
     }
+  };
+
+  // frontmatter 파싱 함수
+  const parseFrontmatter = (content: string) => {
+    const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
+    const match = content.match(frontmatterRegex);
+
+    if (!match) {
+      return {
+        metadata: {},
+        content: content,
+      };
+    }
+
+    const [, frontmatter, bodyContent] = match;
+    const metadata: Record<string, string> = {};
+
+    // YAML 형식의 frontmatter를 간단히 파싱
+    frontmatter.split('\n').forEach((line) => {
+      const [key, ...valueParts] = line.split(':');
+      if (key && valueParts.length > 0) {
+        const value = valueParts.join(':').trim();
+        // 따옴표 제거
+        metadata[key.trim()] = value.replace(/^["']|["']$/g, '');
+      }
+    });
+
+    return {
+      metadata,
+      content: bodyContent.trim(),
+    };
+  };
+
+  const loadTemplates = async (repoId: number) => {
+    try {
+      const templateList = await getGithubIssueTemplates(repoId);
+      // .md 파일만 필터링
+      const markdownTemplates = templateList.filter((template) =>
+        template.name.endsWith('.md')
+      );
+      setTemplates(markdownTemplates);
+    } catch (error) {
+      console.error('템플릿 로드 실패:', error);
+      setTemplates([]);
+    }
+  };
+
+  const applyTemplate = (template: GithubIssueTemplate) => {
+    // 기존에 작성된 내용이 있다면 확인 후 적용
+    const hasContent = markdown && markdown.trim().length > 0;
+    const shouldApply = hasContent
+      ? confirm(
+          '기존 작성된 내용이 있습니다. 템플릿을 적용하면 기존 내용이 사라집니다. 계속하시겠습니까?'
+        )
+      : true;
+
+    if (shouldApply) {
+      // frontmatter 파싱하여 메타정보와 본문 내용 분리
+      const { metadata, content } = parseFrontmatter(template.body);
+
+      // 본문 내용만 상세 내용에 반영
+      setMarkdown(content);
+      setSelectedTemplate(template);
+
+      // 메타정보에 title이 있으면 제목에 적용, 없으면 기존 template.title 사용
+      console.log('메타정보', metadata, template);
+      const titleToApply = metadata.title;
+      if (titleToApply) {
+        setTitle(titleToApply);
+      }
+    }
+
+    setFormToggle((prev) => ({ ...prev, template: false }));
   };
 
   return (
@@ -520,7 +580,9 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
                   <div className="flex w-full items-center gap-[8px]">
                     <div
                       className={`flex h-[32px] w-full cursor-pointer items-center justify-between rounded-[4px] border-2 px-[12px] py-[6px] ${
-                        !isDateRangeValid() ? 'border-red-500 bg-red-50' : 'border-[#DBDBDB]'
+                        !isDateRangeValid()
+                          ? 'border-red-500 bg-red-50'
+                          : 'border-[#DBDBDB]'
                       }`}
                       onClick={() => {
                         setDateEditMode('start');
@@ -531,12 +593,17 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
                         {dateRange?.from?.toLocaleDateString('ko-KR') ??
                           '시작일 선택'}
                       </p>
-                      <CalendarIcon size={16} className={!isDateRangeValid() ? 'text-red-500' : ''} />
+                      <CalendarIcon
+                        size={16}
+                        className={!isDateRangeValid() ? 'text-red-500' : ''}
+                      />
                     </div>
                     <span>~</span>
                     <div
                       className={`flex h-[32px] w-full cursor-pointer items-center justify-between rounded-[4px] border-2 px-[12px] py-[6px] ${
-                        !isDateRangeValid() ? 'border-red-500 bg-red-50' : 'border-[#DBDBDB]'
+                        !isDateRangeValid()
+                          ? 'border-red-500 bg-red-50'
+                          : 'border-[#DBDBDB]'
                       }`}
                       onClick={() => {
                         setDateEditMode('end');
@@ -547,11 +614,14 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
                         {dateRange?.to?.toLocaleDateString('ko-KR') ??
                           '종료일 선택'}{' '}
                       </p>
-                      <CalendarIcon size={16} className={!isDateRangeValid() ? 'text-red-500' : ''} />
+                      <CalendarIcon
+                        size={16}
+                        className={!isDateRangeValid() ? 'text-red-500' : ''}
+                      />
                     </div>
                   </div>
                   {!isDateRangeValid() && (
-                    <p className="text-xs text-red-500 px-2">
+                    <p className="px-2 text-xs text-red-500">
                       ⚠️ 시작일이 종료일보다 늦습니다. 날짜를 다시 확인해주세요.
                     </p>
                   )}
@@ -614,22 +684,71 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
                 </p>
 
                 <div
-                  className="flex h-[32px] w-full max-w-[360px] cursor-pointer items-center justify-between rounded-[4px] border-2 border-[#DBDBDB] px-[12px] py-[6px]"
-                  onClick={() => handleFormToggle('template')}
+                  className={`flex h-[32px] w-full max-w-[360px] items-center justify-between rounded-[4px] border-2 px-[12px] py-[6px] ${
+                    templates.length > 0
+                      ? 'cursor-pointer border-[#DBDBDB] bg-white'
+                      : 'cursor-not-allowed border-gray-300 bg-gray-100'
+                  }`}
+                  onClick={() =>
+                    templates.length > 0 && handleFormToggle('template')
+                  }
                 >
-                  <p>선택</p>
+                  <p
+                    className={
+                      templates.length > 0 ? 'text-black' : 'text-gray-400'
+                    }
+                  >
+                    {selectedTemplate
+                      ? selectedTemplate.name
+                      : templates.length > 0
+                        ? '템플릿 선택'
+                        : '저장소를 먼저 선택하세요'}
+                  </p>
 
                   <Icon
                     src={formToggle['template'] ? ICONS.up20 : ICONS.down20}
                     size={16}
                     alt={formToggle['template'] ? 'collapse' : 'expand'}
+                    className={templates.length > 0 ? '' : 'opacity-50'}
                   />
                 </div>
               </div>
 
               {formToggle['template'] && (
                 <div className="absolute top-[40px] z-10 flex w-full max-w-[360px] flex-col self-end rounded-[4px] border bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
-                  <span onClick={getTemplateContents}>!! TODO 아직 안함</span>
+                  {templates.length > 0 ? (
+                    <div className="max-h-[200px] overflow-y-auto">
+                      {templates.map((template) => (
+                        <div
+                          key={template.id}
+                          className="flex cursor-pointer items-center justify-between border-b border-gray-100 px-[12px] py-[8px] last:border-b-0 hover:bg-gray-50"
+                          onClick={() => applyTemplate(template)}
+                        >
+                          <div className="flex min-w-0 flex-1 flex-col">
+                            <p className="truncate text-xs font-medium">
+                              {template.name}
+                            </p>
+                            <p className="truncate text-[12px] text-gray-500">
+                              {template.title}
+                            </p>
+                          </div>
+                          {selectedTemplate?.id === template.id && (
+                            <div className="ml-2 flex-shrink-0">
+                              <Icon
+                                src={ICONS.checkCircle20}
+                                size={16}
+                                alt="selected"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="px-[12px] py-[8px] text-xs text-gray-500">
+                      사용 가능한 템플릿이 없습니다.
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -653,11 +772,17 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
                       } else {
                         // GitHub 연동 해제 시 선택된 저장소와 드롭다운 상태 초기화
                         setSelectedRepoUrl(item.repo || '');
-                        setFormToggle((prev) => ({ ...prev, github: false }));
+                        setFormToggle((prev) => ({
+                          ...prev,
+                          github: false,
+                          template: false,
+                        }));
                         setFormData((prev) => {
                           const { repo, ...rest } = prev;
                           return rest;
                         });
+                        setTemplates([]);
+                        setSelectedTemplate(null);
                       }
                     }}
                   />
@@ -680,11 +805,11 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
                 >
                   <p
                     className={cn(
-                      '',
+                      'line-clamp-1',
                       isGithubEnabled ? 'text-black' : 'text-gray-400'
                     )}
                   >
-                    {selectedRepoUrl 
+                    {selectedRepoUrl
                       ? selectedRepoUrl.split('.com/')[1] || selectedRepoUrl
                       : '저장소 선택'}
                   </p>
@@ -720,6 +845,8 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
                               ...prev,
                               repo: repo.repo_url,
                             }));
+                            // 선택된 저장소의 템플릿 로드
+                            loadTemplates(repo.id);
                             handleFormToggle('github');
                           }}
                         >
@@ -760,7 +887,8 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
                   type="text"
                   className="h-[40px] w-full rounded-[8px] bg-[#F5F5F5] px-[12px] py-[8px]"
                   placeholder="제목을 입력해 주세요."
-                  defaultValue={item.title}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
                   name="title"
                 />
               </label>
@@ -771,7 +899,11 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
               <label className="flex flex-col gap-[4px]">
                 <p className="text-xs text-[#939393]">상세 내용</p>
                 <div className="h-[320px] w-full overflow-auto">
-                  <Editor content={item.body} setMarkdown={setMarkdown} />
+                  <Editor
+                    key={selectedTemplate?.id || 'default'}
+                    content={markdown || item.body}
+                    setMarkdown={setMarkdown}
+                  />
                 </div>
               </label>
             </div>
