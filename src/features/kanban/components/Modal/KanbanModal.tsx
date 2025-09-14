@@ -26,7 +26,6 @@ import { GithubIssueTemplate } from '@/supabase/types/github/issue-template';
 import { GithubRepo } from '@/supabase/types/github/repo';
 
 import { getStateKeyFromLabel, stateLabelMap } from '../../constants/kanban';
-import { netteeRepo } from '../../constants/nettee';
 import { useFilterStore } from '../../store/filterStore';
 import { IssueData } from '../../types/issues';
 import { StateLabel, StateType } from '../StateLabel';
@@ -177,21 +176,6 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
     }
   }, [githubRepos, selectedRepoUrl, isGithubEnabled]);
 
-  const getRepo = (item: {
-    repo?: string;
-    project?: string;
-    team?: string;
-  }) => {
-    type ProjectName = keyof typeof netteeRepo;
-    type TeamName = keyof (typeof netteeRepo)[ProjectName];
-
-    if (item.repo) return item.repo;
-    if (item.project && item.team) {
-      return netteeRepo[item.project as ProjectName][item.team as TeamName][0];
-    }
-    return undefined;
-  };
-
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -255,10 +239,7 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
               : toKoreanDateString(new Date())),
           assignees: selectedAssignees,
           labels: selectedLabels.map((labelKey) => kanbanLabel[labelKey]),
-          repo:
-            isGithubEnabled && selectedRepoUrl
-              ? selectedRepoUrl
-              : getRepo(item) || '',
+          repo: isGithubEnabled && selectedRepoUrl ? selectedRepoUrl : '',
           task_priority:
             selectedLabels.find((label) =>
               ['hold', 'low', 'medium', 'high', 'veryhigh'].includes(label)
