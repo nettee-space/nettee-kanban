@@ -52,6 +52,39 @@ export const getKanbanTaskTree = async (filters: {
 };
 
 /**
+ * 'kanban_task' 테이블에서 모든 태스크(메인 + 서브)를 조회합니다.
+ * project_id, task_priority_id, kaban_user_id로 조건 검색이 가능합니다.
+ *
+ * @param {object} filters 필터 조건: 프로젝트 아이디, 작업우선중요도 아이디, 칸반사용자 아이디
+ * @returns {Promise<KanbanTask[]>} 모든 작업 목록
+ * @throws {Error} Supabase에서 데이터를 가져오는 중 발생한 에러
+ */
+export const getAllTasks = async (filters: {
+  project_id?: number;
+  task_priority_id?: number;
+  kaban_user_id?: string;
+}): Promise<KanbanTask[]> => {
+  let query = supabase
+    .from('kanban_task')
+    .select('*');
+
+  if (filters.project_id !== undefined)
+    query = query.eq('project_id', filters.project_id);
+
+  if (filters.task_priority_id !== undefined)
+    query = query.eq('task_priority_id', filters.task_priority_id);
+
+  if (filters.kaban_user_id !== undefined)
+    query = query.eq('kaban_user_id', filters.kaban_user_id);
+
+  const { data, error } = await query;
+
+  if (error) throw error;
+
+  return data;
+};
+
+/**
  * 'kanban_task' 테이블에서 메인 테스크를 조회합니다.
  * project_id, task_priority_id, kaban_user_id로 조건 검색이 가능합니다.
  *
@@ -245,6 +278,7 @@ const checkCircularReference = async (
   // 새로운 상위 태스크의 모든 하위 태스크를 재귀적으로 가져와서
   // 그 중에 이동하려는 태스크가 있는지 확인
   const descendants = await getAllDescendants(newParentId);
+  console.log(descendants);
   return descendants.some((descendant) => descendant.id === taskId);
 };
 

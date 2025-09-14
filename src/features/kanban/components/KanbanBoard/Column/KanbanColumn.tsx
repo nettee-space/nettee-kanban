@@ -1,12 +1,14 @@
 // components/KanbanBoard/KanbanColumn.tsx
 import { PlusIcon } from 'lucide-react';
-import { Fragment, useMemo, useState } from 'react';
+import { DragEvent, Fragment, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { useDragAndDrop } from '@/features/kanban/hooks/useDragAndDrop';
+import { useIssueStore } from '@/store/issueStore';
 import { Icon, ICONS } from '@/shared/components/ui/icon';
 import { cn } from '@/shared/lib/utils/cn';
 
+import { moveTaskToSubTask } from '@/supabase/api/kanbanTask';
 import { kanbanStyleMap } from '../../../constants/kanban';
 import { IssueData } from '../../../types/issues';
 import { KanbanModal } from '../../Modal/KanbanModal';
@@ -55,14 +57,61 @@ export function KanbanColumn({
 }: KanbanColumnProps) {
   const { handleDragStart, handleDragEnd, handleDragOver, handleDragLeave } =
     useDragAndDrop();
+  const { updateKanbanTask } = useIssueStore();
+
+  const handleDropOnCard = async (
+    e: DragEvent<Element>,
+    targetTaskId: number
+  ) => {
+    try {
+      const dragDataStr = e.dataTransfer.getData('application/json');
+      if (!dragDataStr) return;
+
+      const dragData = JSON.parse(dragDataStr);
+      const { cardId, sourceProject, sourceTeam } = dragData;
+
+      // 동일 프로젝트/팀 내에서만 허용
+      if (sourceProject !== project || sourceTeam !== team) {
+        console.warn(
+          '다른 프로젝트/팀 태스크는 서브태스크로 만들 수 없습니다.'
+        );
+        return;
+      }
+
+      // 자기 자신에게 드롭하는 경우 방지
+      if (Number(cardId) === targetTaskId) {
+        console.warn('자기 자신의 서브태스크로 만들 수 없습니다.');
+        return;
+      }
+
+      console.log(
+        `태스크 ${cardId}를 태스크 ${targetTaskId}의 서브태스크로 만들기 시도`
+      );
+
+      // API 호출하여 parent_task_id 업데이트
+      console.log('subtask', cardId, targetTaskId);
+      await moveTaskToSubTask(Number(cardId), targetTaskId);
+
+      console.log('서브태스크 생성 완료');
+
+      // 원본 KanbanTask 데이터 업데이트 (UI 데이터는 자동 동기화됨)
+      updateKanbanTask(Number(cardId), { parent_task_id: targetTaskId });
+      
+      console.log('프론트엔드 상태 업데이트 완료');
+    } catch (error) {
+      console.error('서브태스크 생성 중 오류:', error);
+    }
+  };
   const [modalItem, setModalItem] = useState<Partial<IssueData> | null>(null);
 
-  // updated_at 기준으로 내림차순 정렬
+  // 메인 태스크만 필터링 후 updated_at 기준으로 내림차순 정렬
   const sortedIssues = useMemo(() => {
-    return [...issues].sort(
-      (a, b) =>
-        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-    );
+    return [...issues]
+      .filter((issue) => !issue.parent || issue.parent === '') // parent_task_id가 없는 메인 태스크만
+      .sort(
+        (a, b) =>
+          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+      );
   }, [issues]);
   const getKanbanStyle = (progress: string) => {
     return (
@@ -163,6 +212,7 @@ export function KanbanColumn({
                   e.stopPropagation();
                   setModalItem(item);
                 }}
+                onDropOnCard={handleDropOnCard}
               />
             </Fragment>
           ))

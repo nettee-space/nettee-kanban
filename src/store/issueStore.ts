@@ -10,6 +10,7 @@ import { toKoreanDateString } from '@/shared/components/ui/datetime-picker';
 import {
   createKanbanTask,
   deleteKanbanTask,
+  getAllTasks,
   getMainTasks,
   updateKanbanTask,
 } from '@/supabase/api/kanbanTask';
@@ -106,7 +107,8 @@ export const mapTeamNameToId = (teamName: string): number | null => {
 };
 
 interface IssueState {
-  issues: IssueData[];
+  issues: IssueData[]; // UI용 변환된 데이터 (기존 호환성 유지)
+  kanbanTasks: KanbanTask[]; // Supabase 원본 데이터
   loading: boolean;
   syncing: boolean;
   lastSyncAt: string | null;
@@ -176,6 +178,10 @@ interface IssueState {
   // 유틸리티
   getIssueById: (id: number) => IssueData | undefined;
   clearIssues: () => void;
+  // KanbanTask 원본 데이터 관리
+  getKanbanTaskById: (id: number) => KanbanTask | undefined;
+  updateKanbanTask: (id: number, updates: Partial<KanbanTask>) => void;
+  syncIssuesFromKanbanTasks: () => void; // 원본 데이터에서 UI 데이터 동기화
 }
 // IssueData와 KanbanTask 간의 매핑 함수들
 const mapKanbanTaskToIssueData = (task: KanbanTask): IssueData => {
@@ -266,6 +272,7 @@ const mapIssueDataToKanbanTask = (
 
 export const useIssueStore = create<IssueState>((set, get) => ({
   issues: [],
+  kanbanTasks: [], // 원본 KanbanTask 데이터
   loading: false,
   syncing: false,
   lastSyncAt: new Date().toISOString(),
@@ -387,11 +394,13 @@ export const useIssueStore = create<IssueState>((set, get) => ({
         await filterStore.loadProjectList();
       }
 
-      console.log('📋 Supabase에서 태스크 로딩 중...');
-      const tasks = await getMainTasks(filters || {});
-      console.log('📋 로드된 태스크 개수:', tasks.length);
+      console.log('📋 Supabase에서 모든 태스크 로딩 중...');
+      const tasks = await getAllTasks(filters || {});
+      console.log('📋 로드된 전체 태스크 개수:', tasks.length);
 
+      // 원본 KanbanTask 데이터와 변환된 IssueData 모두 저장
       const mappedIssues = tasks.map(mapKanbanTaskToIssueData);
+      set({ kanbanTasks: tasks, issues: mappedIssues });
       console.log(
         '📋 매핑된 이슈들:',
         mappedIssues.map((i) => ({
@@ -657,6 +666,28 @@ export const useIssueStore = create<IssueState>((set, get) => ({
     return get().issues.find((issue) => issue.number === id);
   },
   clearIssues: () => {
-    set({ issues: [] });
+    set({ issues: [], kanbanTasks: [] });
+  },
+  
+  // KanbanTask 원본 데이터 관리
+  getKanbanTaskById: (id: number) => {
+    return get().kanbanTasks.find((task) => task.id === id);
+  },
+  
+  updateKanbanTask: (id: number, updates: Partial<KanbanTask>) => {
+    const state = get();
+    const updatedTasks = state.kanbanTasks.map(task => 
+      task.id === id ? { ...task, ...updates } : task
+    );
+    
+    // 원본 데이터 업데이트 후 UI 데이터 동기화
+    set({ kanbanTasks: updatedTasks });
+    get().syncIssuesFromKanbanTasks();
+  },
+  
+  syncIssuesFromKanbanTasks: () => {
+    const state = get();
+    const convertedIssues = state.kanbanTasks.map(mapKanbanTaskToIssueData);
+    set({ issues: convertedIssues });
   },
 }));

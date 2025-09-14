@@ -24,6 +24,7 @@ interface KanbanCardProps {
   ) => void;
   onPin?: (e: MouseEvent<HTMLImageElement>) => void;
   onOpenModal: (e: MouseEvent<HTMLLIElement>) => void;
+  onDropOnCard?: (e: DragEvent<Element>, targetTaskId: number) => void;
 }
 
 export function KanbanCard({
@@ -35,13 +36,44 @@ export function KanbanCard({
   onDragStart,
   onPin,
   onOpenModal,
+  onDropOnCard,
 }: KanbanCardProps) {
-  const { updateIssueToSupabase } = useIssueStore();
+  const { updateIssueToSupabase, kanbanTasks } = useIssueStore();
+
+  // 현재 태스크의 서브태스크 찾기 (원본 KanbanTask 데이터에서)
+  const subTasks = kanbanTasks
+    .filter(task => task.parent_task_id === item.number)
+    .map(task => {
+      // KanbanTask를 IssueData 형태로 변환하여 UI에서 사용
+      return {
+        id: task.id.toString(),
+        number: task.id,
+        title: task.title,
+        progress: task.status,
+        project: project,
+        team: team
+      };
+    });
+
+  const handleDrop = (e: DragEvent<Element>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onDropOnCard) {
+      onDropOnCard(e, item.number);
+    }
+  };
+
+  const handleDragOver = (e: DragEvent<Element>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
 
   return (
     <li
-      className="flex max-h-[150px] min-h-[90px] w-full flex-col rounded-xl bg-white"
+      className={`flex w-full flex-col rounded-xl bg-white ${subTasks.length > 0 ? 'min-h-[120px]' : 'max-h-[150px] min-h-[90px]'}`}
       onClick={onOpenModal}
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
     >
       <div
         draggable="true"
@@ -95,6 +127,34 @@ export function KanbanCard({
           />
         </div>
       </div>
+
+      {/* 서브태스크 목록 */}
+      {subTasks.length > 0 && (
+        <div className="border-t border-gray-200 px-[14px] py-[8px]">
+          <div className="mb-2 text-xs text-gray-500">
+            서브태스크 ({subTasks.length})
+          </div>
+          <div className="space-y-1">
+            {subTasks.map((subTask) => (
+              <div
+                key={subTask.id}
+                className="flex items-center gap-2 border-l-2 border-gray-300 pl-4 text-xs text-gray-600"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // 서브태스크 클릭 시 모달 열기
+                  const modalEvent = e as unknown as MouseEvent<HTMLLIElement>;
+                  onOpenModal(modalEvent);
+                }}
+              >
+                <span className="flex-1 truncate">{subTask.title}</span>
+                <span className="text-[10px] text-gray-400">
+                  {subTask.progress}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </li>
   );
 }
