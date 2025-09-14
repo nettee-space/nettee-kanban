@@ -47,17 +47,18 @@ export const useDragAndDrop = () => {
         return;
       }
 
-      // DropIndicator 위치 기반으로 삽입 위치 결정
+      // 동일 컬럼 내에서의 순서 변경은 허용하지 않음
+      if (sourceColumnId === targetProgress) {
+        console.log('동일 상태 내에서는 순서 변경이 불가능합니다.');
+        return;
+      }
+
+      // 다른 상태로 이동 - DropIndicator 위치 기반으로 삽입 위치 결정
       const indicators = getIndicators(targetProgress);
       const { element } = getNearestIndicator(e, indicators);
       const beforeId = element.dataset.before;
 
-      // 동일 위치에 드롭하는 경우 아무 작업 안함
-      if (sourceColumnId === targetProgress && beforeId === cardId) {
-        return;
-      }
-
-      // 순서 변경 또는 상태 이동 수행
+      // 다른 상태로 이동 수행
       const beforeIdNum = beforeId === '-1' ? null : Number(beforeId);
       reorderIssues(
         Number(cardId),

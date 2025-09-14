@@ -1,6 +1,6 @@
 // components/KanbanBoard/KanbanColumn.tsx
 import { PlusIcon } from 'lucide-react';
-import { Fragment, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { useDragAndDrop } from '@/features/kanban/hooks/useDragAndDrop';
@@ -56,6 +56,14 @@ export function KanbanColumn({
   const { handleDragStart, handleDragEnd, handleDragOver, handleDragLeave } =
     useDragAndDrop();
   const [modalItem, setModalItem] = useState<Partial<IssueData> | null>(null);
+
+  // updated_at 기준으로 내림차순 정렬
+  const sortedIssues = useMemo(() => {
+    return [...issues].sort(
+      (a, b) =>
+        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+    );
+  }, [issues]);
   const getKanbanStyle = (progress: string) => {
     return (
       kanbanStyleMap[progress as keyof typeof kanbanStyleMap] ||
@@ -64,7 +72,7 @@ export function KanbanColumn({
   };
   const style = getKanbanStyle(progress);
   // const totalCount = issues.length + pinnedIssues.length;
-  const totalCount = issues.length;
+  const totalCount = sortedIssues.length;
 
   const handleAddNew = () => {
     setModalItem({
@@ -122,7 +130,7 @@ export function KanbanColumn({
         onDragOver={(e) => handleDragOver(e, progress)}
         onDragLeave={() => handleDragLeave(progress)}
       >
-        {issues.length === 0 ? (
+        {sortedIssues.length === 0 ? (
           <div className="flex flex-1 items-center justify-center text-sm text-gray-400">
             <Icon
               src={ICONS.errorGray24}
@@ -133,10 +141,13 @@ export function KanbanColumn({
             <span>일정이 없습니다.</span>
           </div>
         ) : (
-          // 이슈가 있을 때 기존 로직
-          issues.map((item, index) => (
+          // 이슈가 있을 때 기존 로직 - updated_at 기준 정렬
+          sortedIssues.map((item, index) => (
             <Fragment key={item.id}>
-              <DropIndicator beforeId={item.id} progress={item.progress} />
+              <DropIndicator
+                beforeId={item.number.toString()}
+                progress={progress}
+              />
               <KanbanCard
                 item={{
                   ...item,
