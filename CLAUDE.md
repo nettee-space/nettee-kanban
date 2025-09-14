@@ -101,6 +101,14 @@ Uses conventional commits with these types:
 
 Pre-commit hooks via Husky run linting and formatting automatically.
 
+### Git Commit Rules
+
+**Important commit guidelines:**
+- **NEVER include `.env.local`** in commits as it contains sensitive environment variables
+- **NEVER add Claude as co-author** in commit messages - commits should only reflect human contributors
+- Always exclude environment files from staging: `git reset .env.local` if accidentally added
+- Use meaningful commit messages that clearly describe the changes without AI attribution
+
 ## Testing & Quality
 
 - ESLint with TypeScript, React, and import sorting plugins
