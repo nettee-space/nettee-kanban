@@ -2,6 +2,7 @@ import { DragEvent, MouseEvent } from 'react';
 
 import { formatDateToYYYYMMDD } from '@/shared/components/ui/datetime-picker';
 import { Icon, ICONS } from '@/shared/components/ui/icon';
+
 import { IssueData } from '../../../types/issues';
 
 interface KanbanCardProps {

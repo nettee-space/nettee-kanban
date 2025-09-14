@@ -8,7 +8,6 @@ import {
   AccordionTrigger,
 } from '@/shared/components/ui/accordion';
 import { Checkbox } from '@/shared/components/ui/checkbox';
-
 import { cn } from '@/shared/lib/utils/cn';
 import { useFilterStore } from '../../store/filterStore';
 

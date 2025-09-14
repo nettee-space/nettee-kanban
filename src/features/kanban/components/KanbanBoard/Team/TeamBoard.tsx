@@ -1,6 +1,7 @@
+import { useState } from 'react';
+
 import { TeamDataModel } from '@/features/kanban/types/issues';
 
-import { useState } from 'react';
 import { KanbanColumn } from '../Column/KanbanColumn';
 import { ColumnContainer } from './ColumnContainer';
 
@@ -12,12 +13,14 @@ interface TeamBoardProps {
 
 export function TeamBoard({ teams, project, addIssue }: TeamBoardProps) {
   // 팀별 열림/닫힘 상태를 관리하는 Map
-  const [teamOpenStates, setTeamOpenStates] = useState<Record<string, boolean>>({});
+  const [teamOpenStates, setTeamOpenStates] = useState<Record<string, boolean>>(
+    {}
+  );
 
   const toggleTeam = (teamName: string) => {
-    setTeamOpenStates(prev => ({
+    setTeamOpenStates((prev) => ({
       ...prev,
-      [teamName]: !prev[teamName] // undefined일 경우 false -> true
+      [teamName]: !prev[teamName], // undefined일 경우 false -> true
     }));
   };
 
@@ -25,7 +28,7 @@ export function TeamBoard({ teams, project, addIssue }: TeamBoardProps) {
     <div className={`'h-full' flex flex-col gap-[8px] overflow-hidden`}>
       {Object.entries(teams).map(([team, progressMap]) => {
         const isOpen = teamOpenStates[team] || false; // 기본값 false
-        
+
         return (
           <ColumnContainer
             key={`${team}_kanban`}

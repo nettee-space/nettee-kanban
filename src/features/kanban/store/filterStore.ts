@@ -2,6 +2,8 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
+import { useUserStore } from '@/store/userStore';
+
 import {
   DEFAULT_PROJECT_LIST,
   DEFAULT_TEAM_LIST,
@@ -9,7 +11,6 @@ import {
   fetchProjectList,
   fetchTeamList,
 } from '../constants/kanban';
-import { useUserStore } from '@/store/userStore';
 
 interface FilterState {
   // 필터 상태
@@ -167,7 +168,7 @@ export const useFilterStore = create<FilterState>()(
             let newSelectedAssignees;
             // userStore에서 사용자 목록 가져오기
             const userStore = useUserStore.getState();
-            const allMembers = userStore.users.map(user => user.login);
+            const allMembers = userStore.users.map((user) => user.login);
 
             if (assignee === 'All') {
               newSelectedAssignees = state.selectedAssignees.includes('All')
@@ -207,7 +208,7 @@ export const useFilterStore = create<FilterState>()(
           () => {
             // userStore에서 사용자 목록 가져오기
             const userStore = useUserStore.getState();
-            const allMembers = userStore.users.map(user => user.login);
+            const allMembers = userStore.users.map((user) => user.login);
             return { selectedAssignees: ['All', ...allMembers] };
           },
           false,

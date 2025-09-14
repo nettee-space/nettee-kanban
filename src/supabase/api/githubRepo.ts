@@ -9,9 +9,7 @@ import { GithubRepo } from '../types/github/repo';
  * @throws {Error}
  */
 export const getGithubRepos = async (): Promise<GithubRepo[]> => {
-  const { data, error } = await supabase
-    .from('github_repo')
-    .select('*');
+  const { data, error } = await supabase.from('github_repo').select('*');
 
   if (error) throw error;
 

@@ -18,13 +18,13 @@ export function NetteeKanbanLayout() {
     setGroupedIssues,
     addIssue,
   } = useKanbanData();
-  const { 
+  const {
     selectedProjects,
-    selectedTeams, 
+    selectedTeams,
     selectedAssignees,
-    toggleProject, 
+    toggleProject,
     toggleTeam,
-    resetAllFilters 
+    resetAllFilters,
   } = useFilterStore();
   const { accordionMap, toggleAccordion, resetAccordion } = useAccordion();
 
@@ -117,7 +117,7 @@ export function NetteeKanbanLayout() {
       <main className="flex h-full w-full items-center justify-center">
         <div className="text-center">
           <div className="mb-4 text-lg">Supabase 데이터 로딩 중...</div>
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
         </div>
       </main>
     );
@@ -129,7 +129,7 @@ export function NetteeKanbanLayout() {
         filters={{
           selectedProject: selectedProjects,
           selectedTeam: selectedTeams,
-          selectedAssignee: selectedAssignees
+          selectedAssignee: selectedAssignees,
         }}
         accordionMap={accordionMap}
         onProjectToggle={toggleProject}

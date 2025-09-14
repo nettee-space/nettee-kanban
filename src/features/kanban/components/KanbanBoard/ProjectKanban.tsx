@@ -1,5 +1,5 @@
 // components/KanbanBoard/index.tsx
-import { Fragment, useState } from 'react';
+import { Fragment } from 'react';
 
 import { Divider } from '@/shared/components/ui/divider';
 import { mapProjectNameToId } from '@/store/issueStore';
@@ -53,7 +53,7 @@ export function ProjectKanban({
         const projectId = mapProjectNameToId(project);
         const accordionKey = `kanban-${projectId}`;
         const isOpened = accordionMap[accordionKey] ?? true;
-        
+
         return (
           <Fragment key={`${project}`}>
             <ProjectHeader
@@ -62,7 +62,9 @@ export function ProjectKanban({
               title={project}
             />
             {/* 팀별 칸반 보드들 */}
-            {isOpened && <TeamBoard teams={teams} project={project} addIssue={addIssue} />}
+            {isOpened && (
+              <TeamBoard teams={teams} project={project} addIssue={addIssue} />
+            )}
             <Divider />
           </Fragment>
         );

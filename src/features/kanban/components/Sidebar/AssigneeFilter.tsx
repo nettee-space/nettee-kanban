@@ -7,12 +7,12 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/shared/components/ui/accordion';
-import { Checkbox } from '@/shared/components/ui/checkbox';
-
 import { Button } from '@/shared/components/ui/button';
+import { Checkbox } from '@/shared/components/ui/checkbox';
 import { Icon, ICONS } from '@/shared/components/ui/icon';
 import { cn } from '@/shared/lib/utils/cn';
 import { useUserStore } from '@/store/userStore';
+
 import { useFilterStore } from '../../store/filterStore';
 
 export function AssigneeFilter() {

@@ -1,6 +1,7 @@
 // components/Sidebar/index.tsx
 import { Button } from '@/shared/components/ui/button';
 import { Icon, ICONS } from '@/shared/components/ui/icon';
+
 import { AssigneeFilter } from './AssigneeFilter';
 import { LabelFilter } from './LabelFilter';
 import { ProjectFilter } from './ProjectFilter';
@@ -39,7 +40,7 @@ export function Sidebar({ onReset }: SidebarProps) {
         <Button
           variant="ghost"
           type="reset"
-          className="text-black-7 flex cursor-pointer items-center text-sm font-semibold duration-200 hover:text-[#ff5555]"
+          className="text-black-7 hover:text-black-8 flex cursor-pointer items-center text-sm font-semibold duration-200"
           onClick={onReset}
         >
           <Icon src={ICONS.refresh24} size={24} alt="reset" />

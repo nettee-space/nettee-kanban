@@ -18,7 +18,10 @@ interface UserState {
   getUserByLogin: (login: string) => NetteeUser | undefined;
   getUserByRealName: (realName: string) => NetteeUser | undefined;
   getAllUsers: () => NetteeUser[];
-  getUsersByTeamName: (teamName: string, teamList: [string, string][]) => NetteeUser[];
+  getUsersByTeamName: (
+    teamName: string,
+    teamList: [string, string][]
+  ) => NetteeUser[];
 }
 
 export const useUserStore = create<UserState>()(
@@ -35,23 +38,23 @@ export const useUserStore = create<UserState>()(
           set({ users, loading: false });
         } catch (error) {
           console.error('사용자 목록 로드 실패:', error);
-          set({ 
+          set({
             error: error instanceof Error ? error.message : '알 수 없는 오류',
-            loading: false 
+            loading: false,
           });
         }
       },
 
       getUsersByTeamId: (teamId: number) => {
-        return get().users.filter(user => user.team_id.includes(teamId));
+        return get().users.filter((user) => user.team_id.includes(teamId));
       },
 
       getUserByLogin: (login: string) => {
-        return get().users.find(user => user.login === login);
+        return get().users.find((user) => user.login === login);
       },
 
       getUserByRealName: (realName: string) => {
-        return get().users.find(user => user.real_name === realName);
+        return get().users.find((user) => user.real_name === realName);
       },
 
       getAllUsers: () => {
@@ -63,10 +66,12 @@ export const useUserStore = create<UserState>()(
         if (teamName === 'All' || teamName === '전체') {
           return get().users;
         }
-        
-        const team = teamList.find(([id, name]) => name === teamName || id === teamName);
+
+        const team = teamList.find(
+          ([id, name]) => name === teamName || id === teamName
+        );
         if (!team) return [];
-        
+
         const teamId = parseInt(team[0]);
         return get().getUsersByTeamId(teamId);
       },

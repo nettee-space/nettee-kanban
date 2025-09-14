@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { toKoreanDateString } from '@/shared/components/ui/datetime-picker';
 
 import {
   stateKeyToTaskPriorityId,
@@ -7,6 +6,7 @@ import {
 } from '@/features/kanban/constants/kanban';
 import { useFilterStore } from '@/features/kanban/store/filterStore';
 import { IssueData } from '@/features/kanban/types/issues';
+import { toKoreanDateString } from '@/shared/components/ui/datetime-picker';
 import {
   createKanbanTask,
   deleteKanbanTask,
@@ -348,9 +348,9 @@ export const useIssueStore = create<IssueState>((set, get) => ({
             updated_at: new Date().toISOString(),
             progress: status,
             sta_dt: toKoreanDateString(new Date()),
-            end_dt: toKoreanDateString(new Date(
-              Date.now() + Math.random() * 60 * 24 * 60 * 60 * 1000
-            )),
+            end_dt: toKoreanDateString(
+              new Date(Date.now() + Math.random() * 60 * 24 * 60 * 60 * 1000)
+            ),
             assignees: [randomAssignee],
             labels: [],
             parent: '',

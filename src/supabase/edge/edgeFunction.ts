@@ -28,7 +28,7 @@ export const syncGithubIssues = () => {
 
 /**
  * =================================
- * 2. Notification Functions  
+ * 2. Notification Functions
  * =================================
  */
 
@@ -131,7 +131,7 @@ export const securityAudit = () => {
 // 성능 모니터링
 export const performanceMonitoring = () => {
   // TODO: 응답시간 측정
-  // TODO: 에러율 모니터링  
+  // TODO: 에러율 모니터링
   // TODO: 사용량 통계
   // TODO: 알람 및 알림
 };

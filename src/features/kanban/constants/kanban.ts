@@ -69,12 +69,14 @@ export const getStateKeyFromLabel = (
 };
 
 // task_priority_id (1,2,3,4,5) <-> stateLabel key (hold,low,medium,high,veryhigh) 매핑
-export const taskPriorityIdToStateKey = (priorityId: number): keyof typeof stateLabelMap => {
+export const taskPriorityIdToStateKey = (
+  priorityId: number
+): keyof typeof stateLabelMap => {
   const mapping: Record<number, keyof typeof stateLabelMap> = {
-    1: 'hold',     // 보류
-    2: 'low',      // 낮음
-    3: 'medium',   // 보통
-    4: 'high',     // 높음
+    1: 'hold', // 보류
+    2: 'low', // 낮음
+    3: 'medium', // 보통
+    4: 'high', // 높음
     5: 'veryhigh', // 매우 높음
   };
   return mapping[priorityId] || 'medium'; // 기본값: 보통
@@ -82,11 +84,11 @@ export const taskPriorityIdToStateKey = (priorityId: number): keyof typeof state
 
 export const stateKeyToTaskPriorityId = (stateKey: string): number => {
   const mapping: Record<string, number> = {
-    'hold': 1,     // 보류
-    'low': 2,      // 낮음
-    'medium': 3,   // 보통
-    'high': 4,     // 높음
-    'veryhigh': 5, // 매우 높음
+    hold: 1, // 보류
+    low: 2, // 낮음
+    medium: 3, // 보통
+    high: 4, // 높음
+    veryhigh: 5, // 매우 높음
   };
   return mapping[stateKey] || 3; // 기본값: 3 (보통)
 };

@@ -14,9 +14,7 @@ export const useFilters = () => {
   const allProjects = projectList
     .filter(([id]) => id !== 'All')
     .map(([id]) => id);
-  const allTeams = teamList
-    .filter(([id]) => id !== 'All')
-    .map(([id]) => id);
+  const allTeams = teamList.filter(([id]) => id !== 'All').map(([id]) => id);
 
   const [filters, setFilters] = useState<FilterState>({
     selectedProject: [''],

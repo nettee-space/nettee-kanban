@@ -4,9 +4,9 @@ import { Fragment, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { useDragAndDrop } from '@/features/kanban/hooks/useDragAndDrop';
-
 import { Icon, ICONS } from '@/shared/components/ui/icon';
 import { cn } from '@/shared/lib/utils/cn';
+
 import { kanbanStyleMap } from '../../../constants/kanban';
 import { IssueData } from '../../../types/issues';
 import { KanbanModal } from '../../Modal/KanbanModal';

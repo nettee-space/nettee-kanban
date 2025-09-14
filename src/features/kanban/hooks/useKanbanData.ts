@@ -5,8 +5,8 @@ import {
   mapTeamIdToName,
   useIssueStore,
 } from '@/store/issueStore';
-import { useFilterStore } from '../store/filterStore';
 
+import { useFilterStore } from '../store/filterStore';
 import { GroupedIssues, IssueData, KanbanProgress } from '../types/issues';
 
 /**
@@ -168,12 +168,12 @@ export const useKanbanData = () => {
       const allProjectsFromServer = projectList
         .filter(([id]) => id !== 'All')
         .map(([, name]) => name);
-      
+
       // 서버 목록이 있으면 사용, 없으면 issues에서 추출
       if (allProjectsFromServer.length > 0) {
         projectsToShow = allProjectsFromServer;
       } else {
-        projectsToShow = [...new Set(issues.map(issue => issue.project))];
+        projectsToShow = [...new Set(issues.map((issue) => issue.project))];
       }
     } else {
       // 선택된 프로젝트 ID들을 이름으로 변환
@@ -188,12 +188,12 @@ export const useKanbanData = () => {
       const allTeamsFromServer = teamList
         .filter(([id]) => id !== 'All')
         .map(([, name]) => name);
-      
+
       // 서버 목록이 있으면 사용, 없으면 issues에서 추출
       if (allTeamsFromServer.length > 0) {
         teamsToShow = allTeamsFromServer;
       } else {
-        teamsToShow = [...new Set(issues.map(issue => issue.team))];
+        teamsToShow = [...new Set(issues.map((issue) => issue.team))];
       }
     } else {
       // 선택된 팀 ID들을 이름으로 변환
