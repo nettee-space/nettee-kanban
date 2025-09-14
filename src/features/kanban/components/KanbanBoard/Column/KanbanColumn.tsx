@@ -159,7 +159,10 @@ export function KanbanColumn({
                 isPinned={false}
                 onDragStart={handleDragStart}
                 // onPin={(_) => onPin(project, team, progress, item.id)}
-                onOpenModal={() => setModalItem(item)}
+                onOpenModal={(e) => {
+                  e.stopPropagation();
+                  setModalItem(item);
+                }}
               />
             </Fragment>
           ))

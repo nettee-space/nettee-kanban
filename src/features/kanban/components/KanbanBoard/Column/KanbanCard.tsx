@@ -3,6 +3,7 @@ import { DragEvent, MouseEvent } from 'react';
 import { formatDateToYYYYMMDD } from '@/shared/components/ui/datetime-picker';
 import { Icon, ICONS } from '@/shared/components/ui/icon';
 
+import { useIssueStore } from '@/store/issueStore';
 import { IssueData } from '../../../types/issues';
 
 interface KanbanCardProps {
@@ -22,7 +23,7 @@ interface KanbanCardProps {
     team: string
   ) => void;
   onPin?: (e: MouseEvent<HTMLImageElement>) => void;
-  onOpenModal: () => void;
+  onOpenModal: (e: MouseEvent<HTMLLIElement>) => void;
 }
 
 export function KanbanCard({
@@ -35,6 +36,8 @@ export function KanbanCard({
   onPin,
   onOpenModal,
 }: KanbanCardProps) {
+  const { updateIssueToSupabase } = useIssueStore();
+
   return (
     <li
       className="flex max-h-[150px] min-h-[90px] w-full flex-col rounded-xl bg-white"
@@ -49,7 +52,27 @@ export function KanbanCard({
       >
         <div className="flex flex-col justify-between gap-3">
           <div className="flex items-center gap-[4px]">
-            <Icon src={ICONS.uncheckCircle20} />
+            <div
+              className="cursor-pointer"
+              onClick={async (e) => {
+                e.stopPropagation();
+                const updatedDate: IssueData = {
+                  ...item,
+                  progress: columnId === 'DONE' ? 'DOING' : 'DONE',
+                  updated_at: new Date().toISOString(),
+                };
+                await updateIssueToSupabase(item.number, updatedDate);
+                console.log('columnId', columnId);
+              }}
+            >
+              <Icon
+                src={
+                  columnId === 'DONE'
+                    ? ICONS.checkCircle20
+                    : ICONS.uncheckCircle20
+                }
+              />
+            </div>
             <p className="w-[200px] truncate text-sm font-semibold tracking-tight">
               {item.title}
             </p>
@@ -62,7 +85,9 @@ export function KanbanCard({
           </div>
         </div>
         <div className="flex flex-col gap-[10px]">
-          {item.repo && <Icon src={ICONS.github24} size={24} alt="Github" />}
+          <div className="flex h-[24px] w-[24px] items-center justify-center">
+            {item.repo && <Icon src={ICONS.github24} size={24} alt="Github" />}
+          </div>
           <Icon
             src={isPinned ? ICONS.pin24 : ICONS.unpin24}
             size={24}
