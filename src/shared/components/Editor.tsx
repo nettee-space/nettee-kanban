@@ -83,6 +83,18 @@ export function Editor({
     }
   }, [editor.document, onChange]);
 
+  // 클릭 시 최하단 이동 방지
+  const handleClick = useCallback((e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    
+    // ProseMirror 내부의 실제 컨텐츠 영역 클릭이 아닌 경우
+    if (!target.closest('.ProseMirror p, .ProseMirror h1, .ProseMirror h2, .ProseMirror h3, .ProseMirror li, .ProseMirror blockquote, .ProseMirror pre')) {
+      // 에디터의 빈 공간 클릭 시 자동 포커스 및 커서 이동 방지
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, []);
+
   return (
     <BlockNoteView
       aria-labelledby="content-label"
@@ -91,7 +103,8 @@ export function Editor({
       slashMenu={false}
       sideMenu={false}
       onChange={onChange}
-      className="h-full min-h-0 flex-1 overflow-auto text-sm leading-tight font-medium [&_.bn-editor]:!bg-neutral-100 [&_.bn-editor]:!px-0 [&_.bn-editor]:!text-neutral-400 [&.bn-container]:rounded-lg [&.bn-container]:bg-neutral-100 [&.bn-container]:p-3"
+      onClick={handleClick}
+      className="h-full min-h-0 flex-1 overflow-auto text-sm leading-tight font-medium [&_.bn-editor]:!bg-neutral-100 [&_.bn-editor]:!px-0 [&_.bn-editor]:!text-neutral-400 [&.bn-container]:rounded-lg [&.bn-container]:bg-neutral-100 [&.bn-container]:p-3 [&_.bn-editor]:cursor-text [&_.ProseMirror]:!min-h-0"
     >
       <FormattingToolbarController
         formattingToolbar={() => (
