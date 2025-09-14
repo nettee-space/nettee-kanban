@@ -164,3 +164,147 @@ export const deleteKanbanTask = async (id: number): Promise<void> => {
 
   if (error) throw error;
 };
+
+/**
+ * 태스크가 하위 태스크를 가지고 있는지 확인합니다.
+ * 기존 getSubTasks 함수를 활용합니다.
+ *
+ * @param {number} taskId 확인할 태스크 ID
+ * @returns {Promise<boolean>} 하위 태스크 존재 여부
+ * @throws {Error} Supabase에서 데이터를 조회하는 중 발생한 에러
+ */
+export const hasSubTasks = async (taskId: number): Promise<boolean> => {
+  const subTasks = await getSubTasks(taskId);
+  return subTasks.length > 0;
+};
+
+/**
+ * 태스크를 다른 태스크의 하위로 이동할 수 있는지 검증합니다.
+ * 이동하려는 태스크가 이미 하위 태스크를 가지고 있다면 이동을 허용하지 않습니다.
+ *
+ * @param {number} taskId 이동시키려는 태스크 ID
+ * @param {number} newParentId 새로운 상위 태스크 ID
+ * @returns {Promise<{canMove: boolean, reason?: string}>} 이동 가능 여부와 사유
+ * @throws {Error} Supabase에서 데이터를 조회하는 중 발생한 에러
+ */
+export const validateTaskMove = async (
+  taskId: number,
+  newParentId: number
+): Promise<{ canMove: boolean; reason?: string }> => {
+  // 1. 이동하려는 태스크가 하위 태스크를 가지고 있는지 확인
+  const taskHasChildren = await hasSubTasks(taskId);
+
+  if (taskHasChildren) {
+    return {
+      canMove: false,
+      reason:
+        '하위 태스크를 가진 태스크는 다른 태스크의 하위로 이동할 수 없습니다.',
+    };
+  }
+
+  // 2. 순환 참조 방지: 새로운 상위 태스크가 이동하려는 태스크의 하위인지 확인
+  const isCircularReference = await checkCircularReference(taskId, newParentId);
+
+  if (isCircularReference) {
+    return {
+      canMove: false,
+      reason:
+        '순환 참조가 발생합니다. 해당 태스크를 상위로 설정할 수 없습니다.',
+    };
+  }
+
+  // 3. 새로운 상위 태스크가 존재하는지 확인
+  const { data: parentTask, error } = await supabase
+    .from('kanban_task')
+    .select('id')
+    .eq('id', newParentId)
+    .single();
+
+  if (error || !parentTask) {
+    return {
+      canMove: false,
+      reason: '상위 태스크가 존재하지 않습니다.',
+    };
+  }
+
+  return { canMove: true };
+};
+
+/**
+ * 순환 참조를 확인합니다.
+ * newParentId가 taskId의 하위 태스크인지 재귀적으로 확인합니다.
+ *
+ * @param {number} taskId 이동시키려는 태스크 ID
+ * @param {number} newParentId 새로운 상위 태스크 ID
+ * @returns {Promise<boolean>} 순환 참조 여부
+ */
+const checkCircularReference = async (
+  taskId: number,
+  newParentId: number
+): Promise<boolean> => {
+  // 새로운 상위 태스크의 모든 하위 태스크를 재귀적으로 가져와서
+  // 그 중에 이동하려는 태스크가 있는지 확인
+  const descendants = await getAllDescendants(newParentId);
+  return descendants.some((descendant) => descendant.id === taskId);
+};
+
+/**
+ * 특정 태스크의 모든 하위 태스크를 재귀적으로 가져옵니다.
+ * 기존 getSubTasks 함수를 재귀적으로 활용합니다.
+ *
+ * @param {number} taskId 상위 태스크 ID
+ * @returns {Promise<KanbanTask[]>} 모든 하위 태스크 목록
+ */
+const getAllDescendants = async (taskId: number): Promise<KanbanTask[]> => {
+  // 기존 getSubTasks 함수 활용
+  const directChildren = await getSubTasks(taskId);
+
+  if (directChildren.length === 0) {
+    return [];
+  }
+
+  // 각 직접 하위 태스크의 하위 태스크들도 재귀적으로 가져오기
+  const allDescendants: KanbanTask[] = [...directChildren];
+
+  for (const child of directChildren) {
+    const childDescendants = await getAllDescendants(child.id);
+    allDescendants.push(...childDescendants);
+  }
+
+  return allDescendants;
+};
+
+/**
+ * 태스크를 다른 태스크의 하위로 안전하게 이동합니다.
+ * 이동 전에 유효성 검사를 수행합니다.
+ *
+ * @param {number} taskId 이동시키려는 태스크 ID
+ * @param {number} newParentId 새로운 상위 태스크 ID
+ * @returns {Promise<KanbanTask | null>} 업데이트된 태스크 또는 null
+ * @throws {Error} 이동이 불가능하거나 Supabase 에러가 발생한 경우
+ */
+export const moveTaskToSubTask = async (
+  taskId: number,
+  newParentId: number
+): Promise<KanbanTask | null> => {
+  if (isGuest) return null;
+
+  // 유효성 검사
+  const validation = await validateTaskMove(taskId, newParentId);
+
+  if (!validation.canMove) {
+    throw new Error(validation.reason || '태스크 이동이 불가능합니다.');
+  }
+
+  // 태스크 업데이트
+  const { data, error } = await supabase
+    .from('kanban_task')
+    .update({ parent_task_id: newParentId })
+    .eq('id', taskId)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return data;
+};
