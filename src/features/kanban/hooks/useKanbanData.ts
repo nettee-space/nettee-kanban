@@ -284,7 +284,6 @@ export const useKanbanData = () => {
       repo: issueData.repo || '',
       task_priority: issueData.task_priority || 'medium',
       html_url: `#issue-${Date.now()}`,
-      state: 'open',
       pinned: false,
     });
 

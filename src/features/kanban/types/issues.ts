@@ -3,12 +3,11 @@ export type IssueData = {
   html_url: string; // GitHub 이슈 URL
   id: string; // GitHub 고유 ID
   number: number; // 이슈 번호
-  state: string; // TODO: ?
   title: string; // 이슈 제목
   body: string; // 이슈 내용
   created_at: string; // 이슈 생성 시간
   updated_at: string; // 이슈 수정 시간
-  progress: string; // 진행 경과
+  progress: string; // 진행 경과 // TODO, DOING, DONE
   sta_dt: string; // 작업 시작 시간
   end_dt: string; // 작업 종료 시간
   assignees: string[]; // 담당자

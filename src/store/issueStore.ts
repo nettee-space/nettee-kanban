@@ -191,7 +191,6 @@ const mapKanbanTaskToIssueData = (task: KanbanTask): IssueData => {
     html_url: task.repo_url || `#task-${task.id}`,
     id: task.id.toString(),
     number: task.id,
-    state: 'open', // KanbanTask에는 state 필드가 없어서 기본값 사용
     title: task.title,
     body: task.description,
     created_at: task.create_at || new Date().toISOString(),
@@ -339,7 +338,6 @@ export const useIssueStore = create<IssueState>((set, get) => ({
             html_url: `#issue-${issueId}`,
             id: issueId.toString(),
             number: issueId,
-            state: 'open',
             title: `[${team}] ${randomTitle}`,
             body: randomBody,
             created_at: new Date(
@@ -457,7 +455,6 @@ export const useIssueStore = create<IssueState>((set, get) => ({
         sb_id: '-1',
         id: '-1',
         number: 0,
-        state: 'open',
       };
 
       console.log('매핑 전 IssueData:', newIssueData);
