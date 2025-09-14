@@ -3,6 +3,7 @@ import * as React from 'react';
 
 import { Label } from '@/shared/components/ui/label';
 import { cn } from '@/shared/lib/utils/cn';
+
 import { stateLabelMap } from '../constants/kanban';
 
 // StateLabel에서 사용할 수 있는 state 타입
