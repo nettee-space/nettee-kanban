@@ -68,7 +68,7 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
   const [selectedRepoUrl, setSelectedRepoUrl] = useState<string>(
     item.repo || ''
   );
-  const [isGithubEnabled, setIsGithubEnabled] = useState(false);
+  const [isGithubEnabled, setIsGithubEnabled] = useState(!!item.repo || false);
   const [templates, setTemplates] = useState<GithubIssueTemplate[]>([]);
   const [selectedTemplate, setSelectedTemplate] =
     useState<GithubIssueTemplate | null>(null);
@@ -152,6 +152,30 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
       loadUsers();
     }
   }, [users.length, loadUsers]);
+
+  // 기존 GitHub 연동 태스크 수정 시 저장소 목록 자동 로드
+  useEffect(() => {
+    if (isGithubEnabled && githubRepos.length === 0) {
+      loadGithubRepos();
+    }
+  }, [isGithubEnabled]);
+
+  // GitHub 저장소 목록이 로드된 후, 기존 연동된 저장소의 템플릿 자동 로드
+  useEffect(() => {
+    if (
+      isGithubEnabled &&
+      githubRepos.length > 0 &&
+      selectedRepoUrl &&
+      templates.length === 0
+    ) {
+      const matchedRepo = githubRepos.find(
+        (repo) => repo.repo_url === selectedRepoUrl
+      );
+      if (matchedRepo) {
+        loadTemplates(matchedRepo.id);
+      }
+    }
+  }, [githubRepos, selectedRepoUrl, isGithubEnabled]);
 
   const getRepo = (item: {
     repo?: string;
