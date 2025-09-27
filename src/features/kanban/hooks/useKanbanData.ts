@@ -20,8 +20,13 @@ export const useKanbanData = () => {
 
   const { createIssue, issues, loadInitialData, loadTasksFromSupabase } =
     useIssueStore();
-  const { selectedProjects, selectedTeams, selectedAssignees } =
-    useFilterStore();
+  const {
+    selectedProjects,
+    selectedTeams,
+    selectedAssignees,
+    showPinnedOnly,
+    showGithubOnly,
+  } = useFilterStore();
 
   // 컴포넌트 마운트 시 Supabase 데이터 로딩
   useEffect(() => {
@@ -103,17 +108,39 @@ export const useKanbanData = () => {
           selectedAssignees.includes(assignee)
         );
 
+      // Pin 필터링
+      const pinnedMatch = !showPinnedOnly || issue.pinned;
+
+      // GitHub 필터링 (repo 필드가 있는 이슈만)
+      const githubMatch =
+        !showGithubOnly || (issue.repo && issue.repo.trim() !== '');
+
       console.log(`🔍 이슈 "${issue.title}" 필터링:`, {
         issue: {
           project: issue.project,
           team: issue.team,
           assignees: issue.assignees,
+          pinned: issue.pinned,
+          repo: issue.repo,
         },
-        matches: { projectMatch, teamMatch, assigneeMatch },
-        result: projectMatch && teamMatch && assigneeMatch,
+        matches: {
+          projectMatch,
+          teamMatch,
+          assigneeMatch,
+          pinnedMatch,
+          githubMatch,
+        },
+        result:
+          projectMatch &&
+          teamMatch &&
+          assigneeMatch &&
+          pinnedMatch &&
+          githubMatch,
       });
 
-      return projectMatch && teamMatch && assigneeMatch;
+      return (
+        projectMatch && teamMatch && assigneeMatch && pinnedMatch && githubMatch
+      );
     });
 
     console.log('✅ 필터링 완료:', {
@@ -240,6 +267,8 @@ export const useKanbanData = () => {
       selectedProjects,
       selectedTeams,
       selectedAssignees,
+      showPinnedOnly,
+      showGithubOnly,
       uniqueProjects: [...new Set(issues.map((i) => i.project))],
       uniqueTeams: [...new Set(issues.map((i) => i.team))],
     });
@@ -254,7 +283,14 @@ export const useKanbanData = () => {
         Object.keys(storeGroupedIssues)
       );
     }
-  }, [issues, selectedProjects, selectedTeams, selectedAssignees]);
+  }, [
+    issues,
+    selectedProjects,
+    selectedTeams,
+    selectedAssignees,
+    showPinnedOnly,
+    showGithubOnly,
+  ]);
 
   const addIssue = (issueData: {
     title: string;

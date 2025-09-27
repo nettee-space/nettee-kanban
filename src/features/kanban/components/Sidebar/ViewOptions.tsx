@@ -7,9 +7,18 @@ import {
 import { Button } from '@/shared/components/ui/button';
 import { Icon, ICONS } from '@/shared/components/ui/icon';
 
+import { useFilterStore } from '../../store/filterStore';
+
 // components/Sidebar/ViewOptions.tsx
 
 export function ViewOptions() {
+  const {
+    showPinnedOnly,
+    showGithubOnly,
+    togglePinnedFilter,
+    toggleGithubFilter,
+  } = useFilterStore();
+
   return (
     <div className="border-t border-[#dbdbdb] py-[20px]">
       <Accordion
@@ -29,7 +38,8 @@ export function ViewOptions() {
                   size={'icon'}
                   className="h-8 w-8 cursor-pointer p-2"
                   type="button"
-                  variant={'secondary'}
+                  variant={showPinnedOnly ? 'default' : 'secondary'}
+                  onClick={togglePinnedFilter}
                 >
                   <Icon src={ICONS.pin20} />
                 </Button>
@@ -37,7 +47,8 @@ export function ViewOptions() {
                   size={'icon'}
                   className="h-8 w-8 cursor-pointer p-2"
                   type="button"
-                  variant={'secondary'}
+                  variant={showGithubOnly ? 'default' : 'secondary'}
+                  onClick={toggleGithubFilter}
                 >
                   <Icon src={ICONS.github20} />
                 </Button>

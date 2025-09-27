@@ -19,6 +19,10 @@ interface FilterState {
   selectedAssignees: string[];
   selectedLabels: string[];
 
+  // 새로운 필터 상태
+  showPinnedOnly: boolean;
+  showGithubOnly: boolean;
+
   // 데이터 목록 상태
   teamList: [string, string][];
   projectList: [string, string][];
@@ -40,6 +44,10 @@ interface FilterState {
   clearLabels: () => void;
   selectAllLabels: () => void;
 
+  // 새로운 필터 액션
+  togglePinnedFilter: () => void;
+  toggleGithubFilter: () => void;
+
   resetAllFilters: () => void;
 
   // 데이터 로드 액션
@@ -56,6 +64,11 @@ export const useFilterStore = create<FilterState>()(
       selectedTeams: [],
       selectedAssignees: [],
       selectedLabels: [],
+
+      // 새로운 필터 상태 초기값
+      showPinnedOnly: false,
+      showGithubOnly: false,
+
       teamList: DEFAULT_TEAM_LIST, // 기본값
       projectList: DEFAULT_PROJECT_LIST, // 기본값
 
@@ -227,12 +240,30 @@ export const useFilterStore = create<FilterState>()(
       clearLabels: () => set({ selectedLabels: [] }),
       selectAllLabels: () => set({ selectedLabels: [...dummyLabels] }),
 
+      // 새로운 필터 액션들
+      togglePinnedFilter: () =>
+        set(
+          (state) => ({ showPinnedOnly: !state.showPinnedOnly }),
+          false,
+          'togglePinnedFilter'
+        ),
+
+      toggleGithubFilter: () =>
+        set(
+          (state) => ({ showGithubOnly: !state.showGithubOnly }),
+          false,
+          'toggleGithubFilter'
+        ),
+
       resetAllFilters: () =>
         set(
           {
             selectedProjects: [],
             selectedTeams: [],
             selectedAssignees: [],
+            selectedLabels: [],
+            showPinnedOnly: false,
+            showGithubOnly: false,
           },
           false,
           'resetAllFilters'
