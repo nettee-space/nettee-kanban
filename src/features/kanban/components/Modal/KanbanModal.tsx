@@ -110,29 +110,42 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
 
   // 현재 상태가 초기 상태와 다른지 확인
   const hasUnsavedChanges = () => {
-    const currentState = {
-      title: title.trim(),
-      body: markdown || item.body || '',
-      progress: formData.progress || item.progress || 'TODO',
-      sta_dt: formData.sta_dt || (dateRange?.from ? toKoreanDateString(dateRange.from) : item.sta_dt || ''),
-      end_dt: formData.end_dt || (dateRange?.to ? toKoreanDateString(dateRange.to) : item.end_dt || ''),
-      assignees: JSON.stringify(selectedAssignees),
-      labels: JSON.stringify(selectedLabels),
-      repo: selectedRepoUrl,
-      isGithubEnabled: isGithubEnabled,
-    };
+    // 제목 변경 확인
+    if (title.trim() !== initialState.title) return true;
 
-    return (
-      currentState.title !== initialState.title ||
-      currentState.body !== initialState.body ||
-      currentState.progress !== initialState.progress ||
-      currentState.sta_dt !== initialState.sta_dt ||
-      currentState.end_dt !== initialState.end_dt ||
-      currentState.assignees !== initialState.assignees ||
-      currentState.labels !== initialState.labels ||
-      currentState.repo !== initialState.repo ||
-      currentState.isGithubEnabled !== initialState.isGithubEnabled
-    );
+    // 내용 변경 확인 (마크다운이 설정되어 있고 초기값과 다른 경우만)
+    if (markdown !== initialState.body) return true;
+    // 진행상태 변경 확인
+    if (
+      (formData.progress || item.progress || 'TODO') !== initialState.progress
+    )
+      return true;
+
+    // 날짜 변경 확인
+    const currentStartDate =
+      formData.sta_dt ||
+      (dateRange?.from
+        ? toKoreanDateString(dateRange.from)
+        : item.sta_dt || '');
+    const currentEndDate =
+      formData.end_dt ||
+      (dateRange?.to ? toKoreanDateString(dateRange.to) : item.end_dt || '');
+
+    if (currentStartDate !== initialState.sta_dt) return true;
+    if (currentEndDate !== initialState.end_dt) return true;
+
+    // 담당자 변경 확인
+    if (JSON.stringify(selectedAssignees) !== initialState.assignees)
+      return true;
+    // 라벨 변경 확인
+    if (JSON.stringify(selectedLabels) !== initialState.labels) return true;
+    // 저장소 변경 확인
+    if (selectedRepoUrl !== initialState.repo) return true;
+
+    // GitHub 연동 상태 변경 확인
+    if (isGithubEnabled !== initialState.isGithubEnabled) return true;
+
+    return false;
   };
 
   // 개별 날짜 선택 모드 ('start', 'end', 'range')
@@ -485,7 +498,7 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
 
     return {
       metadata,
-      content: bodyContent.trim(),
+      content: bodyContent,
     };
   };
 
@@ -540,18 +553,15 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
     }
   };
 
-  // 변경사항 저장 후 닫기
-  const handleSaveAndClose = () => {
-    const form = document.querySelector('form');
-    if (form) {
-      form.requestSubmit();
-    }
-  };
-
-  // 변경사항 무시하고 닫기
-  const handleCloseWithoutSaving = () => {
+  // 변경사항 무시하고 닫기 (예 클릭)
+  const handleConfirmClose = () => {
     setShowWarningModal(false);
     setModal(null);
+  };
+
+  // 모달로 돌아가기 (아니오 클릭)
+  const handleCancelClose = () => {
+    setShowWarningModal(false);
   };
 
   return (
@@ -586,7 +596,9 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
         </div>
 
         {/* 모달 편집 영역 */}
-        <div className={`relative flex-1 ${formToggle['github'] ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+        <div
+          className={`relative flex-1 ${formToggle['github'] ? 'overflow-hidden' : 'overflow-y-auto'}`}
+        >
           <div className="flex flex-wrap gap-[16px] p-[16px]">
             {/* 진행상태 선택하는 드롭다운 메뉴*/}
             <div className="relative flex w-full max-w-[420px] flex-col">
@@ -1257,12 +1269,17 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
         </div>
       </form>
 
-
       {/* 변경사항 저장 확인 모달 */}
       {showWarningModal && (
-        <div className="fixed inset-0 z-50 flex h-screen w-screen items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
-            <div className="mb-4">
+        <div
+          className="fixed inset-0 z-50 flex h-screen w-screen items-center justify-center bg-black/50 p-4"
+          onClick={handleConfirmClose}
+        >
+          <div
+            className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-6">
               <h3 className="text-lg font-semibold text-gray-900">
                 변경사항이 저장되지 않았습니다
               </h3>
@@ -1273,24 +1290,17 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
             <div className="flex justify-end gap-3">
               <button
                 type="button"
-                onClick={() => setShowWarningModal(false)}
+                onClick={handleCancelClose}
                 className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
-                계속 편집
+                아니오
               </button>
               <button
                 type="button"
-                onClick={handleCloseWithoutSaving}
+                onClick={handleConfirmClose}
                 className="rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
               >
-                저장하지 않고 나가기
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveAndClose}
-                className="rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-              >
-                저장하고 나가기
+                예
               </button>
             </div>
           </div>
