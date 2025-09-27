@@ -4,9 +4,9 @@ import { DragEvent, Fragment, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { useDragAndDrop } from '@/features/kanban/hooks/useDragAndDrop';
-import { useIssueStore } from '@/store/issueStore';
 import { Icon, ICONS } from '@/shared/components/ui/icon';
 import { cn } from '@/shared/lib/utils/cn';
+import { useIssueStore } from '@/store/issueStore';
 
 import { moveTaskToSubTask } from '@/supabase/api/kanbanTask';
 import { kanbanStyleMap } from '../../../constants/kanban';
@@ -96,7 +96,7 @@ export function KanbanColumn({
 
       // 원본 KanbanTask 데이터 업데이트 (UI 데이터는 자동 동기화됨)
       updateKanbanTask(Number(cardId), { parent_task_id: targetTaskId });
-      
+
       console.log('프론트엔드 상태 업데이트 완료');
     } catch (error) {
       console.error('서브태스크 생성 중 오류:', error);
@@ -133,7 +133,7 @@ export function KanbanColumn({
   };
   return (
     <div
-      className={`flex max-h-[860px] flex-1 flex-col gap-[12px] overflow-auto ${style.bg} p-[12px] pb-[32px]`}
+      className={`flex max-h-[860px] flex-1 shrink-0 flex-col gap-[12px] ${style.bg} min-w-[292px] p-[12px] pb-[32px]`}
     >
       {/* 컬럼 헤더 */}
       <div className="flex items-center justify-between px-[8px]">

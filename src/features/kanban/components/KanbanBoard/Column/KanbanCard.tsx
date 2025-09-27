@@ -42,8 +42,8 @@ export function KanbanCard({
 
   // 현재 태스크의 서브태스크 찾기 (원본 KanbanTask 데이터에서)
   const subTasks = kanbanTasks
-    .filter(task => task.parent_task_id === item.number)
-    .map(task => {
+    .filter((task) => task.parent_task_id === item.number)
+    .map((task) => {
       // KanbanTask를 IssueData 형태로 변환하여 UI에서 사용
       return {
         id: task.id.toString(),
@@ -51,7 +51,7 @@ export function KanbanCard({
         title: task.title,
         progress: task.status,
         project: project,
-        team: team
+        team: team,
       };
     });
 
@@ -70,7 +70,7 @@ export function KanbanCard({
 
   return (
     <li
-      className={`flex w-full flex-col rounded-xl bg-white ${subTasks.length > 0 ? 'min-h-[120px]' : 'max-h-[150px] min-h-[90px]'}`}
+      className={`flex w-full min-w-[256px] flex-col rounded-xl bg-white ${subTasks.length > 0 ? 'min-h-[120px]' : 'max-h-[150px] min-h-[90px]'}`}
       onClick={onOpenModal}
       onDrop={handleDrop}
       onDragOver={handleDragOver}
@@ -80,7 +80,7 @@ export function KanbanCard({
         onDragStart={(e) =>
           onDragStart(e, item.id, columnId, item.cardIndex, project, team)
         }
-        className="flex cursor-grab gap-3 px-[14px] py-[16px] active:cursor-grabbing active:bg-[#f5f5f5]"
+        className="flex cursor-grab justify-between gap-3 px-[14px] py-[16px] active:cursor-grabbing active:bg-[#f5f5f5]"
       >
         <div className="flex flex-col justify-between gap-3">
           <div className="flex items-center gap-[4px]">

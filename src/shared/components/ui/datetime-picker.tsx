@@ -50,7 +50,7 @@ export const toKoreanDateString = (date: Date): string => {
   const day = String(koreanDate.getDate()).padStart(2, '0');
 
   // ISO 8601 형식으로 한국시간 기준 날짜 반환 (시분초는 00:00:00으로 고정)
-  return `${year}-${month}-${day}T00:00:00+09:00`;
+  return `${year}-${month}-${day}T00:00:00`;
 };
 
 // 한국시간 날짜 ISO String을 Date 객체로 변환

@@ -38,7 +38,7 @@ export function TeamBoard({ teams, project, addIssue }: TeamBoardProps) {
           >
             {isOpen ? (
               <div
-                className={`mt-[16px] flex h-full flex-wrap gap-[8px] overflow-hidden`}
+                className={`mt-[16px] flex h-full gap-[8px] overflow-hidden`}
               >
                 {Object.entries(progressMap).map(([progress, issues]) => (
                   <KanbanColumn
