@@ -12,13 +12,13 @@
 - [x] KanbanModal UI/UX 개선 (체크박스 및 경고 모달)
 - [x] GitHub 드롭다운 레이아웃 개행 문제 해결
 - [x] KanbanModal 변경사항 감지 개선 및 경고 모달 간소화
+- [x] Pin/Unpin 아이콘 클릭 기능 구현
+- [x] 칸반 컬럼 내 Pin/Unpin 영역 구분
+- [x] 사이드바 Pin/GitHub 필터 기능
 - [ ] 하위 태스크가 없는 카드에 담당자/라벨 표시
-- [ ] Pin/Unpin 아이콘 클릭 기능 구현
-- [ ] 칸반 컬럼 내 Pin/Unpin 영역 구분
-- [ ] 사이드바 Pin/GitHub 필터 기능
 
 ### 📊 전체 진행률
-**6/12 단계 완료 (50%)**
+**9/10 단계 완료 (90%)**
 
 ---
 
@@ -127,55 +127,86 @@
   - ✅ 성능 최적화 (조기 반환)
   - ✅ 사용자 편의성 향상
 
+#### 5. Pin/Unpin 기능 구현 (2025-09-27)
+- **완료일**: 2025-09-27
+- **작업 내용**:
+  - Pin/Unpin 아이콘 클릭 기능 구현
+  - 칸반 컬럼 내 Pin/Unpin 영역 구분
+  - Pin 상태 관리 및 정렬 로직 구현
+- **구현 세부사항**:
+  - `KanbanCard`에서 pin/unpin 아이콘 클릭 시 `togglePin` 함수 호출
+  - `issueStore`에서 pin 상태 토글 및 `updated_at` 업데이트
+  - Pin된 카드들을 컬럼 상단에 배치, 일반 카드와 `Divider`로 분리
+  - Pin된 카드와 일반 카드 모두 `updated_at` 기준으로 정렬
+  - 드래그 앤 드롭 기능과 호환성 유지
+- **수정된 파일**:
+  - `src/features/kanban/components/KanbanBoard/Column/KanbanCard.tsx`
+  - `src/features/kanban/components/KanbanBoard/Column/KanbanColumn.tsx`
+  - `src/store/issueStore.ts`
+  - `src/shared/components/ui/divider.tsx`
+- **기술적 구현**:
+  - `togglePin` 함수로 pin 상태 토글 및 timestamp 업데이트
+  - `useMemo`를 활용한 pin/unpin 카드 분리 및 정렬 최적화
+  - 조건부 렌더링으로 `Divider` 표시/숨김 제어
+  - TypeScript 타입 안전성 개선 (`any` → `IssueData`)
+- **커밋 정보**:
+  - `feat: implement pin/unpin functionality for kanban cards` (5f6f63d)
+  - `style: fix CSS class ordering in Editor component` (673aa4b)
+
+#### 6. 사이드바 Pin/GitHub 필터 기능 (2025-09-27)
+- **완료일**: 2025-09-27
+- **작업 내용**:
+  - FilterStore에 Pin/GitHub 필터 상태 및 액션 추가
+  - ViewOptions 컴포넌트에 필터 버튼 기능 구현
+  - useKanbanData 훅에 새로운 필터 로직 통합
+- **구현 세부사항**:
+  - `showPinnedOnly`, `showGithubOnly` 상태 추가
+  - `togglePinnedFilter`, `toggleGithubFilter` 액션 구현
+  - 필터 버튼 활성/비활성 상태에 따른 variant 변경
+  - Pin 필터: Pin된 카드만 표시하는 로직
+  - GitHub 필터: repo 필드가 있는 카드만 표시하는 로직
+  - 기존 필터들과의 조합 동작 (AND 조건)
+- **수정된 파일**:
+  - `src/features/kanban/store/filterStore.ts`
+  - `src/features/kanban/components/Sidebar/ViewOptions.tsx`
+  - `src/features/kanban/hooks/useKanbanData.ts`
+- **기술적 구현**:
+  - Zustand 상태 관리를 통한 필터 상태 동기화
+  - 조건부 필터링: `!showPinnedOnly || issue.pinned`
+  - GitHub 필터링: `!showGithubOnly || (issue.repo && issue.repo.trim() !== '')`
+  - useEffect 의존성 배열에 새로운 필터 상태 추가로 실시간 반영
+- **커밋 정보**:
+  - `feat: implement sidebar pin/github filter functionality` (0109a26)
+  - `style: fix code formatting in kanbanTask API` (358a68c)
+
 ---
 
 ### 🚧 진행 중인 작업
 
-#### [작업명]
-- **시작일**: [YYYY-MM-DD]
-- **예상 완료일**: [YYYY-MM-DD]
-- **현재 상태**: [상세 상태]
-- **완료율**: [x]%
-- **다음 단계**: [다음에 해야 할 일]
+현재 진행 중인 작업이 없습니다.
 
 ---
 
 ### 📋 대기 중인 작업
 
-#### 1. FilterStore 확장
-- **예상 소요시간**: 30분
-- **내용**: Pin/GitHub 필터 상태 및 액션 추가
-- **파일**: `src/features/kanban/store/filterStore.ts`
-
-#### 2. 담당자/라벨 표시 UI
+#### 1. 담당자/라벨 표시 UI
 - **예상 소요시간**: 45분
 - **내용**: KanbanCard에 조건부 담당자/라벨 표시 영역 추가
+- **설명**: 하위 태스크가 없는 카드에서만 담당자와 라벨을 표시하는 UI 구현
 - **파일**: `src/features/kanban/components/KanbanBoard/Column/KanbanCard.tsx`
+- **우선순위**: 높음
 
-#### 3. Pin 클릭 핸들러
-- **예상 소요시간**: 30분
-- **내용**: Pin/Unpin 아이콘 클릭 시 상태 토글 기능
-- **파일**: `src/features/kanban/components/KanbanBoard/Column/KanbanCard.tsx`
-
-#### 4. 칸반 컬럼 정렬 로직
-- **예상 소요시간**: 60분
-- **내용**: Pin 상태별 카드 분리 및 정렬
-- **파일**: `src/features/kanban/components/KanbanBoard/Column/KanbanColumn.tsx`
-
-#### 5. Divider 컴포넌트
-- **예상 소요시간**: 20분
-- **내용**: Pin/Unpin 영역 구분용 구분선 컴포넌트
-- **파일**: `src/shared/components/ui/divider.tsx`
-
-#### 6. 사이드바 필터 연동
-- **예상 소요시간**: 45분
-- **내용**: ViewOptions의 Pin/GitHub 버튼 기능 연결
-- **파일**: `src/features/kanban/components/Sidebar/ViewOptions.tsx`
-
-#### 7. 필터 로직 통합
-- **예상 소요시간**: 30분
-- **내용**: 새 필터와 기존 필터 조합 로직
-- **파일**: `src/features/kanban/hooks/useFilters.ts`
+#### 2. 사이드바 Pin/GitHub 필터 기능
+- **예상 소요시간**: 75분 (FilterStore 확장 + 필터 연동)
+- **내용**:
+  - FilterStore에 Pin/GitHub 필터 상태 및 액션 추가
+  - ViewOptions의 Pin/GitHub 버튼 기능 연결
+  - 새 필터와 기존 필터 조합 로직 구현
+- **파일**:
+  - `src/features/kanban/store/filterStore.ts`
+  - `src/features/kanban/components/Sidebar/ViewOptions.tsx`
+  - `src/features/kanban/hooks/useFilters.ts`
+- **우선순위**: 중간
 
 ---
 
@@ -210,25 +241,29 @@
 ### 🧪 테스트 체크리스트
 
 #### 기능 테스트
+- [x] Pin/Unpin 토글
+  - [x] Unpin → Pin 시 최상단 이동
+  - [x] Pin → Unpin 시 Divider 아래 이동
+  - [x] 상태 저장 및 유지 (프론트엔드)
+  - [ ] Supabase 연동 (향후 확장)
+
+- [x] 영역 구분
+  - [x] Divider 올바른 위치 표시
+  - [x] Pin된 카드 없을 때 Divider 숨김
+  - [x] Pin된 카드들이 컬럼 상단에 표시
+  - [x] updated_at 기준 정렬 적용
+
 - [ ] 담당자/라벨 표시
   - [ ] 하위 태스크 없는 카드에서만 표시
   - [ ] 담당자만 있는 경우
   - [ ] 라벨만 있는 경우
   - [ ] 담당자와 라벨 모두 있는 경우
 
-- [ ] Pin/Unpin 토글
-  - [ ] Unpin → Pin 시 최상단 이동
-  - [ ] Pin → Unpin 시 Divider 아래 이동
-  - [ ] 상태 저장 및 유지
-
-- [ ] 영역 구분
-  - [ ] Divider 올바른 위치 표시
-  - [ ] Pin된 카드 없을 때 Divider 숨김
-
-- [ ] 사이드바 필터
-  - [ ] Pin 필터 동작
-  - [ ] GitHub 필터 동작
-  - [ ] 다른 필터와 조합
+- [x] 사이드바 필터
+  - [x] Pin 필터 동작 (Pin된 카드만 표시)
+  - [x] GitHub 필터 동작 (GitHub 연동 카드만 표시)
+  - [x] 다른 필터와 조합 (프로젝트/팀/담당자와 AND 조건)
+  - [x] 필터 버튼 상태 변경 (활성/비활성 UI 표시)
 
 #### 성능 테스트
 - [ ] 대량 데이터 필터링 성능
@@ -236,21 +271,37 @@
 - [ ] 메모리 사용량
 
 #### 호환성 테스트
-- [ ] 드래그앤드롭 기능과의 호환성
-- [ ] 서브태스크 기능과의 호환성
+- [x] 드래그앤드롭 기능과의 호환성
+  - [x] Pin된 카드와 일반 카드 간 드래그 앤 드롭
+  - [x] DropIndicator 올바른 위치 표시
+  - [x] 서브태스크 생성 (카드 위에 드롭) 기능 유지
+- [x] 서브태스크 기능과의 호환성
+  - [x] 메인 태스크만 pin/unpin 적용
+  - [x] 서브태스크 목록 표시 유지
+  - [x] 서브태스크가 있는 카드의 레이아웃 유지
 
 ---
 
 ## 다음 세션 계획
 
 ### 🎯 다음에 할 일
-1. [다음 세션에서 우선적으로 진행할 작업]
-2. [주요 고려사항]
-3. [준비사항]
+1. **담당자/라벨 표시 UI 구현** (우선순위: 높음)
+   - 하위 태스크가 없는 카드에서만 담당자/라벨 표시
+   - 현재 서브태스크 영역과 충돌하지 않도록 조건부 렌더링
+   - 레이아웃 깨짐 방지 및 반응형 디자인 고려
+
+2. **향후 확장 고려사항**
+   - Pin 상태의 Supabase 백엔드 연동
+   - 사용자별 Pin 설정 저장
+   - 대량 데이터에서의 성능 최적화
+   - 필터 조합 상태 URL 쿼리 파라미터로 저장
+   - 필터 프리셋 기능 (즐겨찾기 필터 조합)
 
 ### 🔄 리팩토링 고려사항
-- [코드 개선이 필요한 부분]
-- [성능 최적화 가능한 영역]
+- **성능 최적화**: `useMemo` 의존성 배열 최적화로 불필요한 재계산 방지
+- **타입 안전성**: 남아있는 `any` 타입들을 구체적인 타입으로 교체
+- **코드 중복 제거**: Pin 관련 로직을 커스텀 훅으로 분리 고려
+- **접근성 개선**: Pin 버튼에 적절한 aria-label 및 키보드 네비게이션 지원
 
 ---
 

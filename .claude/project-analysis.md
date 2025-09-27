@@ -158,16 +158,27 @@ interface FilterState {
 - 계층 표시 UI
 - 순환 참조 방지
 
-#### 3. 필터링
+#### 3. Pin/Unpin 기능 ⭐ **NEW**
+- Pin/Unpin 아이콘 클릭으로 상태 토글
+- Pin된 카드를 컬럼 상단에 배치
+- Pin 영역과 일반 영역 구분선 표시
+- 드래그 앤 드롭 기능과 완전 호환
+- updated_at 기준 정렬 유지
+
+#### 4. 필터링
 - 프로젝트, 팀, 담당자, 라벨별 필터
+- **사이드바 Pin/GitHub 필터** ⭐ **NEW**
+  - Pin 필터: Pin된 카드만 표시
+  - GitHub 필터: GitHub 연동된 카드만 표시
+  - 기존 필터와 조합 동작 (AND 조건)
 - 동적 필터 데이터 로딩
 
-#### 4. GitHub 연동
+#### 5. GitHub 연동
 - 이슈 템플릿 연동
 - 저장소 선택 기능
 - 체크박스 기반 저장소 선택 UI
 
-#### 5. KanbanModal 고급 기능
+#### 6. KanbanModal 고급 기능
 - 정확한 변경사항 자동 감지 (false positive 해결)
 - 모달 강제 종료 시 경고 알림
 - 간소화된 예/아니오 경고 모달
@@ -201,6 +212,10 @@ pnpm type-check:app  # TypeScript 타입 체크만
 - **메인**: main
 
 ### 최근 커밋
+- **feat: implement sidebar pin/github filter functionality** (0109a26) - 사이드바 필터 기능
+- **style: fix code formatting in kanbanTask API** (358a68c) - 코드 포맷팅
+- **feat: implement pin/unpin functionality for kanban cards** (5f6f63d) - Pin/Unpin 기능 구현
+- **style: fix CSS class ordering in Editor component** (673aa4b) - CSS 클래스 정렬
 - 텍스트 입력 커서 색상 변경
 - 드래그 앤 드롭 서브태스크 생성 기능
 - 태스크 계층 검수 로직
