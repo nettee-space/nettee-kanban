@@ -7,13 +7,13 @@ import {
   BasicTextStyleButton,
   BlockTypeSelect,
   CreateLinkButton,
+  DefaultReactSuggestionItem,
   FormattingToolbar,
   FormattingToolbarController,
   getDefaultReactSlashMenuItems,
   SuggestionMenuController,
   useCreateBlockNote,
 } from '@blocknote/react';
-import { DefaultReactSuggestionItem } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/shadcn';
 import { useCallback, useEffect } from 'react';
 
@@ -63,7 +63,6 @@ export function Editor({
     dictionary: {
       ...locale, // i18n 한국어 설정
       placeholders: {
-        ...locale.placeholders,
         emptyDocument: '내용을 입력하거나 /로 명령을 입력해주세요',
       },
     },
@@ -108,7 +107,7 @@ export function Editor({
       sideMenu={false}
       onChange={onChange}
       onClick={handleClick}
-      className="h-full min-h-0 flex-1 overflow-auto text-sm leading-tight font-medium [&_.ProseMirror]:!min-h-0 [&_.bn-editor]:cursor-text [&_.bn-editor]:!bg-neutral-100 [&_.bn-editor]:!px-0 [&_.bn-editor]:!text-neutral-400 [&.bn-container]:rounded-lg [&.bn-container]:bg-neutral-100 [&.bn-container]:p-3"
+      className="h-full min-h-0 flex-1 overflow-auto text-sm leading-tight font-medium [&_.ProseMirror]:!min-h-0 [&_.bn-editor]:cursor-text [&_.bn-editor]:!bg-neutral-100 [&_.bn-editor]:!px-0 [&_.bn-editor]:!text-neutral-400 [&.bn-container]:rounded-lg [&.bn-container]:bg-neutral-100 [&.bn-container]:p-3 [&_.ProseMirror]:caret-primary-12"
     >
       <FormattingToolbarController
         formattingToolbar={() => (

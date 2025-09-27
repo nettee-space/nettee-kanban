@@ -890,7 +890,7 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
                 <p className="text-xs text-[#939393]">제목</p>
                 <input
                   type="text"
-                  className="h-[40px] w-full rounded-[8px] bg-[#F5F5F5] px-[12px] py-[8px]"
+                  className="caret-primary-12 h-[40px] w-full rounded-[8px] bg-[#F5F5F5] px-[12px] py-[8px]"
                   placeholder="제목을 입력해 주세요."
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
