@@ -107,7 +107,7 @@ export function Editor({
       sideMenu={false}
       onChange={onChange}
       onClick={handleClick}
-      className="h-full min-h-0 flex-1 overflow-auto text-sm leading-tight font-medium [&_.ProseMirror]:!min-h-0 [&_.bn-editor]:cursor-text [&_.bn-editor]:!bg-neutral-100 [&_.bn-editor]:!px-0 [&_.bn-editor]:!text-neutral-400 [&.bn-container]:rounded-lg [&.bn-container]:bg-neutral-100 [&.bn-container]:p-3 [&_.ProseMirror]:caret-primary-12"
+      className="[&_.ProseMirror]:caret-primary-12 h-full min-h-0 flex-1 overflow-auto text-sm leading-tight font-medium [&_.ProseMirror]:!min-h-0 [&_.bn-editor]:cursor-text [&_.bn-editor]:!bg-neutral-100 [&_.bn-editor]:!px-0 [&_.bn-editor]:!text-neutral-400 [&.bn-container]:rounded-lg [&.bn-container]:bg-neutral-100 [&.bn-container]:p-3"
     >
       <FormattingToolbarController
         formattingToolbar={() => (
