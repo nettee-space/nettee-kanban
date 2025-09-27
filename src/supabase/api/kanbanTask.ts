@@ -64,9 +64,7 @@ export const getAllTasks = async (filters: {
   task_priority_id?: number;
   kaban_user_id?: string;
 }): Promise<KanbanTask[]> => {
-  let query = supabase
-    .from('kanban_task')
-    .select('*');
+  let query = supabase.from('kanban_task').select('*');
 
   if (filters.project_id !== undefined)
     query = query.eq('project_id', filters.project_id);
