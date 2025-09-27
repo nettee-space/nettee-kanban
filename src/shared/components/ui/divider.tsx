@@ -16,9 +16,5 @@ export const kanbanStyleMap = {
 } as const;
 
 export function Divider({ className }: { className?: string }) {
-  return (
-    <div
-      className={cn('my-[32px] w-full border-b border-[#dbdbdb]', className)}
-    />
-  );
+  return <div className={cn('w-full border-b border-[#dbdbdb]', className)} />;
 }

@@ -2,8 +2,8 @@ import { DragEvent, MouseEvent } from 'react';
 
 import { formatDateToYYYYMMDD } from '@/shared/components/ui/datetime-picker';
 import { Icon, ICONS } from '@/shared/components/ui/icon';
-
 import { useIssueStore } from '@/store/issueStore';
+
 import { IssueData } from '../../../types/issues';
 
 interface KanbanCardProps {
@@ -22,7 +22,7 @@ interface KanbanCardProps {
     project: string,
     team: string
   ) => void;
-  onPin?: (e: MouseEvent<HTMLImageElement>) => void;
+  onPin?: (taskNumber: number) => void;
   onOpenModal: (e: MouseEvent<HTMLLIElement>) => void;
   onDropOnCard?: (e: DragEvent<Element>, targetTaskId: number) => void;
 }
@@ -70,18 +70,16 @@ export function KanbanCard({
 
   return (
     <li
-      className={`flex w-full min-w-[256px] flex-col rounded-xl bg-white ${subTasks.length > 0 ? 'min-h-[120px]' : 'max-h-[150px] min-h-[90px]'}`}
+      className={`flex w-full min-w-[256px] cursor-grab flex-col rounded-xl bg-white active:cursor-grabbing ${subTasks.length > 0 ? 'min-h-[120px]' : 'max-h-[150px] min-h-[90px]'}`}
+      draggable="true"
+      onDragStart={(e) =>
+        onDragStart(e, item.id, columnId, item.cardIndex, project, team)
+      }
       onClick={onOpenModal}
       onDrop={handleDrop}
       onDragOver={handleDragOver}
     >
-      <div
-        draggable="true"
-        onDragStart={(e) =>
-          onDragStart(e, item.id, columnId, item.cardIndex, project, team)
-        }
-        className="flex cursor-grab justify-between gap-3 px-[14px] py-[16px] active:cursor-grabbing active:bg-[#f5f5f5]"
-      >
+      <div className="flex justify-between gap-3 px-[14px] py-[16px]">
         <div className="flex flex-col justify-between gap-3">
           <div className="flex items-center gap-[4px]">
             <div
@@ -120,11 +118,19 @@ export function KanbanCard({
           <div className="flex h-[24px] w-[24px] items-center justify-center">
             {item.repo && <Icon src={ICONS.github24} size={24} alt="Github" />}
           </div>
-          <Icon
-            src={isPinned ? ICONS.pin24 : ICONS.unpin24}
-            size={24}
-            alt={isPinned ? 'Pinned' : 'Unpinned'}
-          />
+          <div
+            className="cursor-pointer transition-opacity hover:opacity-70"
+            onClick={(e) => {
+              e.stopPropagation();
+              onPin?.(item.number);
+            }}
+          >
+            <Icon
+              src={isPinned ? ICONS.pin24 : ICONS.unpin24}
+              size={24}
+              alt={isPinned ? 'Pinned' : 'Unpinned'}
+            />
+          </div>
         </div>
       </div>
 

@@ -4,11 +4,12 @@ import { DragEvent, Fragment, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { useDragAndDrop } from '@/features/kanban/hooks/useDragAndDrop';
+import { Divider } from '@/shared/components/ui/divider';
 import { Icon, ICONS } from '@/shared/components/ui/icon';
 import { cn } from '@/shared/lib/utils/cn';
 import { useIssueStore } from '@/store/issueStore';
-
 import { moveTaskToSubTask } from '@/supabase/api/kanbanTask';
+
 import { kanbanStyleMap } from '../../../constants/kanban';
 import { IssueData } from '../../../types/issues';
 import { KanbanModal } from '../../Modal/KanbanModal';
@@ -19,7 +20,7 @@ interface KanbanColumnProps {
   team: string;
   progress: string;
   issues: IssueData[];
-  addIssue?: (issueData: any) => void;
+  addIssue?: (issueData: IssueData) => void;
   // pinnedIssues: IssueData[];
   // onDragStart: (e: DragEvent, item: IssueData) => void;
   // onDragEnd: (
@@ -57,7 +58,7 @@ export function KanbanColumn({
 }: KanbanColumnProps) {
   const { handleDragStart, handleDragEnd, handleDragOver, handleDragLeave } =
     useDragAndDrop();
-  const { updateKanbanTask } = useIssueStore();
+  const { updateKanbanTask, togglePin } = useIssueStore();
 
   const handleDropOnCard = async (
     e: DragEvent<Element>,
@@ -104,15 +105,34 @@ export function KanbanColumn({
   };
   const [modalItem, setModalItem] = useState<Partial<IssueData> | null>(null);
 
-  // 메인 태스크만 필터링 후 updated_at 기준으로 내림차순 정렬
-  const sortedIssues = useMemo(() => {
-    return [...issues]
+  // Pin 토글 핸들러
+  const handlePin = async (taskNumber: number) => {
+    try {
+      await togglePin(taskNumber);
+    } catch (error) {
+      console.error('Pin 상태 변경 중 오류:', error);
+    }
+  };
+
+  // 메인 태스크만 필터링 후 pin 상태별로 분리하고 정렬
+  const { pinnedIssues, unpinnedIssues } = useMemo(() => {
+    const mainIssues = [...issues]
       .filter((issue) => !issue.parent || issue.parent === '') // parent_task_id가 없는 메인 태스크만
       .sort(
         (a, b) =>
           new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
       );
+
+    const pinned = mainIssues.filter((issue) => issue.pinned);
+    const unpinned = mainIssues.filter((issue) => !issue.pinned);
+
+    return { pinnedIssues: pinned, unpinnedIssues: unpinned };
   }, [issues]);
+
+  // 전체 이슈 (정렬된 순서 유지용)
+  const sortedIssues = useMemo(() => {
+    return [...pinnedIssues, ...unpinnedIssues];
+  }, [pinnedIssues, unpinnedIssues]);
   const getKanbanStyle = (progress: string) => {
     return (
       kanbanStyleMap[progress as keyof typeof kanbanStyleMap] ||
@@ -155,23 +175,48 @@ export function KanbanColumn({
           </div>
         </div>
       </div>
-      {/* // TODO 고정된 카드들 */}
-      <div>
-        {/* {pinnedIssues.map((item) => (
-          <Fragment key={item.id}>
-            <DropIndicator beforeId={item.id} progress={item.progress} />
-            <KanbanCard
-              item={item}
-              isPinned={true}
-              onDragStart={onDragStart}
-              onPin={(_) => onUnpin(project, team, progress, item.id)}
-              onOpenModal={() => onOpenModal(item)}
-            />
-          </Fragment>
-        ))} */}
-      </div>
-      {/* 구분선 */}
-      {/* <Divider /> */}
+      {/* 고정된 카드들 */}
+      {pinnedIssues.length > 0 && (
+        <div>
+          <DropIndicator
+            beforeId={pinnedIssues[0]?.number.toString()}
+            progress={progress}
+          />
+
+          {pinnedIssues.map((item, index) => (
+            <Fragment key={item.id}>
+              <KanbanCard
+                item={{
+                  ...item,
+                  cardIndex: String(index),
+                }}
+                columnId={progress}
+                project={project}
+                team={team}
+                isPinned={true}
+                onDragStart={handleDragStart}
+                onPin={handlePin}
+                onOpenModal={(e) => {
+                  e.stopPropagation();
+                  setModalItem(item);
+                }}
+                onDropOnCard={handleDropOnCard}
+              />
+              <DropIndicator
+                beforeId={
+                  index === pinnedIssues.length - 1
+                    ? null
+                    : pinnedIssues[index + 1]?.number.toString()
+                }
+                progress={progress}
+              />
+            </Fragment>
+          ))}
+        </div>
+      )}
+
+      {/* 구분선 (Pin된 카드가 있을 때만) */}
+      {pinnedIssues.length > 0 && unpinnedIssues.length > 0 && <Divider />}
       {/* 일반 카드들 */}
       <ul
         className="flex flex-1 flex-col"
@@ -179,7 +224,7 @@ export function KanbanColumn({
         onDragOver={(e) => handleDragOver(e, progress)}
         onDragLeave={() => handleDragLeave(progress)}
       >
-        {sortedIssues.length === 0 ? (
+        {unpinnedIssues.length === 0 && pinnedIssues.length === 0 ? (
           <div className="flex flex-1 items-center justify-center text-sm text-gray-400">
             <Icon
               src={ICONS.errorGray24}
@@ -190,8 +235,8 @@ export function KanbanColumn({
             <span>일정이 없습니다.</span>
           </div>
         ) : (
-          // 이슈가 있을 때 기존 로직 - updated_at 기준 정렬
-          sortedIssues.map((item, index) => (
+          // 일반(unpinned) 이슈들만 렌더링
+          unpinnedIssues.map((item, index) => (
             <Fragment key={item.id}>
               <DropIndicator
                 beforeId={item.number.toString()}
@@ -200,14 +245,14 @@ export function KanbanColumn({
               <KanbanCard
                 item={{
                   ...item,
-                  cardIndex: String(index),
+                  cardIndex: String(pinnedIssues.length + index), // Pin된 카드 수를 고려한 인덱스
                 }}
                 columnId={progress}
                 project={project}
                 team={team}
                 isPinned={false}
                 onDragStart={handleDragStart}
-                // onPin={(_) => onPin(project, team, progress, item.id)}
+                onPin={handlePin}
                 onOpenModal={(e) => {
                   e.stopPropagation();
                   setModalItem(item);

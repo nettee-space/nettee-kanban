@@ -11,7 +11,6 @@ import {
   createKanbanTask,
   deleteKanbanTask,
   getAllTasks,
-  getMainTasks,
   updateKanbanTask,
 } from '@/supabase/api/kanbanTask';
 import { KanbanTask } from '@/supabase/types/kanban/task';
@@ -644,8 +643,21 @@ export const useIssueStore = create<IssueState>((set, get) => ({
   ) => {
     return new Promise(() => {});
   },
-  togglePin: (issueId: number) => {
-    return new Promise(() => {});
+  togglePin: async (issueId: number) => {
+    set((state) => ({
+      issues: state.issues.map((issue) =>
+        issue.number === issueId
+          ? {
+              ...issue,
+              pinned: !issue.pinned,
+              updated_at: new Date().toISOString(),
+            }
+          : issue
+      ),
+    }));
+
+    // Supabase 업데이트 - 현재 구조에서는 pinned 필드가 없으므로 향후 확장 고려
+    // updateKanbanTask를 통해 업데이트할 수 있지만 KanbanTask 타입에 pinned 필드가 필요
   },
   // 필터링/검색
   getIssuesByProgress: (progress: IssueData['progress']) => {
@@ -668,23 +680,23 @@ export const useIssueStore = create<IssueState>((set, get) => ({
   clearIssues: () => {
     set({ issues: [], kanbanTasks: [] });
   },
-  
+
   // KanbanTask 원본 데이터 관리
   getKanbanTaskById: (id: number) => {
     return get().kanbanTasks.find((task) => task.id === id);
   },
-  
+
   updateKanbanTask: (id: number, updates: Partial<KanbanTask>) => {
     const state = get();
-    const updatedTasks = state.kanbanTasks.map(task => 
+    const updatedTasks = state.kanbanTasks.map((task) =>
       task.id === id ? { ...task, ...updates } : task
     );
-    
+
     // 원본 데이터 업데이트 후 UI 데이터 동기화
     set({ kanbanTasks: updatedTasks });
     get().syncIssuesFromKanbanTasks();
   },
-  
+
   syncIssuesFromKanbanTasks: () => {
     const state = get();
     const convertedIssues = state.kanbanTasks.map(mapKanbanTaskToIssueData);
