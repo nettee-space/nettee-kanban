@@ -78,10 +78,70 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
     item.assignees || []
   );
 
+  // 초기 상태 저장 (변경사항 감지용)
+  const [initialState] = useState(() => ({
+    title: item.title || '',
+    body: item.body || '',
+    progress: item.progress || 'TODO',
+    sta_dt: item.sta_dt || '',
+    end_dt: item.end_dt || '',
+    assignees: JSON.stringify(item.assignees || []),
+    labels: JSON.stringify(
+      (() => {
+        const labels: KanbanLabelType[] = [];
+        if (item.labels) {
+          item.labels.forEach((label) => {
+            if (label in kanbanLabel) {
+              labels.push(label as KanbanLabelType);
+            } else {
+              const stateKey = getStateKeyFromLabel(label);
+              if (stateKey in kanbanLabel) {
+                labels.push(stateKey as KanbanLabelType);
+              }
+            }
+          });
+        }
+        return labels;
+      })()
+    ),
+    repo: item.repo || '',
+    isGithubEnabled: !!item.repo,
+  }));
+
+  // 현재 상태가 초기 상태와 다른지 확인
+  const hasUnsavedChanges = () => {
+    const currentState = {
+      title: title.trim(),
+      body: markdown || item.body || '',
+      progress: formData.progress || item.progress || 'TODO',
+      sta_dt: formData.sta_dt || (dateRange?.from ? toKoreanDateString(dateRange.from) : item.sta_dt || ''),
+      end_dt: formData.end_dt || (dateRange?.to ? toKoreanDateString(dateRange.to) : item.end_dt || ''),
+      assignees: JSON.stringify(selectedAssignees),
+      labels: JSON.stringify(selectedLabels),
+      repo: selectedRepoUrl,
+      isGithubEnabled: isGithubEnabled,
+    };
+
+    return (
+      currentState.title !== initialState.title ||
+      currentState.body !== initialState.body ||
+      currentState.progress !== initialState.progress ||
+      currentState.sta_dt !== initialState.sta_dt ||
+      currentState.end_dt !== initialState.end_dt ||
+      currentState.assignees !== initialState.assignees ||
+      currentState.labels !== initialState.labels ||
+      currentState.repo !== initialState.repo ||
+      currentState.isGithubEnabled !== initialState.isGithubEnabled
+    );
+  };
+
   // 개별 날짜 선택 모드 ('start', 'end', 'range')
   const [dateEditMode, setDateEditMode] = useState<'start' | 'end' | 'range'>(
     'range'
   );
+
+  // 경고 모달 상태
+  const [showWarningModal, setShowWarningModal] = useState(false);
 
   // 날짜 범위 유효성 검사
   const isDateRangeValid = () => {
@@ -471,10 +531,33 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
     setFormToggle((prev) => ({ ...prev, template: false }));
   };
 
+  // 모달 닫기 처리
+  const handleModalClose = () => {
+    if (hasUnsavedChanges()) {
+      setShowWarningModal(true);
+    } else {
+      setModal(null);
+    }
+  };
+
+  // 변경사항 저장 후 닫기
+  const handleSaveAndClose = () => {
+    const form = document.querySelector('form');
+    if (form) {
+      form.requestSubmit();
+    }
+  };
+
+  // 변경사항 무시하고 닫기
+  const handleCloseWithoutSaving = () => {
+    setShowWarningModal(false);
+    setModal(null);
+  };
+
   return (
     <div
       className="fixed inset-0 flex h-screen w-screen items-center justify-center overflow-auto bg-black/50 p-4"
-      onClick={(e) => e.target === e.currentTarget && setModal(null)}
+      onClick={(e) => e.target === e.currentTarget && handleModalClose()}
     >
       <form
         className="my-auto flex max-h-[calc(100vh-2rem)] w-full max-w-[1028px] flex-col overflow-hidden rounded-[8px] bg-white"
@@ -497,13 +580,13 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
             </p>
           </div>
 
-          <div onClick={() => setModal(null)}>
+          <div onClick={handleModalClose} className="cursor-pointer">
             <XIcon />
           </div>
         </div>
 
         {/* 모달 편집 영역 */}
-        <div className="relative flex-1 overflow-y-auto">
+        <div className={`relative flex-1 ${formToggle['github'] ? 'overflow-hidden' : 'overflow-y-auto'}`}>
           <div className="flex flex-wrap gap-[16px] p-[16px]">
             {/* 진행상태 선택하는 드롭다운 메뉴*/}
             <div className="relative flex w-full max-w-[420px] flex-col">
@@ -843,7 +926,7 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
                       {githubRepos.map((repo) => (
                         <div
                           key={repo.id}
-                          className="flex cursor-pointer items-center justify-between border-b border-gray-100 px-[12px] py-[8px] last:border-b-0 hover:bg-gray-50"
+                          className="flex cursor-pointer items-center border-b border-gray-100 px-[12px] py-[8px] last:border-b-0 hover:bg-gray-50"
                           onClick={() => {
                             setSelectedRepoUrl(repo.repo_url);
                             setFormData((prev) => ({
@@ -855,6 +938,30 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
                             handleFormToggle('github');
                           }}
                         >
+                          <div className="mr-3 flex-shrink-0">
+                            <Checkbox
+                              checked={selectedRepoUrl === repo.repo_url}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedRepoUrl(repo.repo_url);
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    repo: repo.repo_url,
+                                  }));
+                                  loadTemplates(repo.id);
+                                } else {
+                                  setSelectedRepoUrl('');
+                                  setFormData((prev) => {
+                                    const { repo, ...rest } = prev;
+                                    return rest;
+                                  });
+                                  setTemplates([]);
+                                  setSelectedTemplate(null);
+                                }
+                                handleFormToggle('github');
+                              }}
+                            />
+                          </div>
                           <div className="flex min-w-0 flex-1 flex-col">
                             <p className="truncate text-xs font-medium">
                               {repo.repo_name}
@@ -863,15 +970,6 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
                               Team ID: {repo.team_id}
                             </p>
                           </div>
-                          {selectedRepoUrl === repo.repo_url && (
-                            <div className="ml-2 flex-shrink-0">
-                              <Icon
-                                src={ICONS.checkCircle20}
-                                size={16}
-                                alt="selected"
-                              />
-                            </div>
-                          )}
                         </div>
                       ))}
                     </div>
@@ -1158,6 +1256,46 @@ export function KanbanModal({ item, setModal, addIssue }: ModalProps) {
           </button>
         </div>
       </form>
+
+
+      {/* 변경사항 저장 확인 모달 */}
+      {showWarningModal && (
+        <div className="fixed inset-0 z-50 flex h-screen w-screen items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                변경사항이 저장되지 않았습니다
+              </h3>
+              <p className="mt-2 text-sm text-gray-600">
+                작성한 내용이 있습니다. 저장하지 않고 나가시겠습니까?
+              </p>
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowWarningModal(false)}
+                className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                계속 편집
+              </button>
+              <button
+                type="button"
+                onClick={handleCloseWithoutSaving}
+                className="rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+              >
+                저장하지 않고 나가기
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveAndClose}
+                className="rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              >
+                저장하고 나가기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
