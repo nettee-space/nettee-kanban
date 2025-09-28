@@ -161,7 +161,7 @@ interface IssueState {
     parentId: number,
     subIssueData: Partial<IssueData>
   ) => Promise<void>;
-  detachSubTaskFromParent: (taskId: number) => Promise<IssueData | null>;
+  detachSubTaskFromParent: (taskId: number, newProgress?: string) => Promise<IssueData | null>;
   getSubIssues: (parentId: number) => IssueData[];
   getMainIssues: () => IssueData[];
   // 메타데이터 관리
@@ -634,23 +634,51 @@ export const useIssueStore = create<IssueState>((set, get) => ({
   createSubIssue: (parentId: number, subIssueData: Partial<IssueData>) => {
     return new Promise(() => {});
   },
-  detachSubTaskFromParent: async (taskId: number) => {
+  detachSubTaskFromParent: async (taskId: number, newProgress?: string) => {
     try {
       set({ loading: true });
 
       const detachedTask = await detachSubTask(taskId);
 
       if (detachedTask) {
-        const updatedIssue = mapKanbanTaskToIssueData(detachedTask);
+        // 새로운 상태가 지정된 경우 상태도 함께 업데이트
+        if (newProgress) {
+          const taskWithNewStatus = { ...detachedTask, status: newProgress };
+          await updateKanbanTask(taskId, { status: newProgress });
 
-        set((state) => ({
-          issues: state.issues.map((issue) =>
-            issue.number === taskId ? updatedIssue : issue
-          ),
-          loading: false,
-        }));
+          const updatedIssue = mapKanbanTaskToIssueData(taskWithNewStatus);
 
-        return updatedIssue;
+          set((state) => ({
+            // issues 배열 업데이트 (상태 변경 포함)
+            issues: state.issues.map((issue) =>
+              issue.number === taskId ? updatedIssue : issue
+            ),
+            // kanbanTasks 배열도 함께 업데이트 (상태 변경 포함)
+            kanbanTasks: state.kanbanTasks.map((task) =>
+              task.id === taskId ? taskWithNewStatus : task
+            ),
+            loading: false,
+          }));
+
+          return updatedIssue;
+        } else {
+          // 상태 변경 없이 분리만
+          const updatedIssue = mapKanbanTaskToIssueData(detachedTask);
+
+          set((state) => ({
+            // issues 배열 업데이트
+            issues: state.issues.map((issue) =>
+              issue.number === taskId ? updatedIssue : issue
+            ),
+            // kanbanTasks 배열도 함께 업데이트
+            kanbanTasks: state.kanbanTasks.map((task) =>
+              task.id === taskId ? detachedTask : task
+            ),
+            loading: false,
+          }));
+
+          return updatedIssue;
+        }
       } else {
         set({ loading: false });
         return null;

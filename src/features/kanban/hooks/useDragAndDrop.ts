@@ -77,12 +77,12 @@ export const useDragAndDrop = () => {
         console.log(`서브태스크 ${cardId}를 처리합니다. 부모 ID: ${parentId}`);
 
         try {
-          // 1. 현재 부모에서 서브태스크 분리
-          await detachSubTaskFromParent(Number(cardId));
-          console.log('서브태스크를 부모에서 분리 완료');
+          // 1. 현재 부모에서 서브태스크 분리하고 동시에 새 상태로 변경
+          await detachSubTaskFromParent(Number(cardId), targetProgress);
+          console.log(`서브태스크를 부모에서 분리하고 ${targetProgress} 상태로 변경 완료`);
 
-          // 2. 독립적인 메인 태스크로 승격하고 새 상태로 이동
-          console.log(`서브태스크를 ${targetProgress} 상태의 독립 태스크로 변경`);
+          // 서브태스크는 detachSubTaskFromParent에서 모든 처리가 완료되므로 여기서 종료
+          return;
         } catch (error) {
           console.error('서브태스크 분리 중 오류:', error);
           alert('서브태스크 분리 중 오류가 발생했습니다.');
@@ -91,22 +91,22 @@ export const useDragAndDrop = () => {
       } else if (dragType === 'MAIN_CARD') {
         // 메인 카드 드래그 처리
         console.log(`메인 카드 ${cardId}의 상태를 ${targetProgress}로 변경합니다.`);
+
+        // 메인 카드는 기존 로직대로 reorderIssues 사용
+        const indicators = getIndicators(targetProgress);
+        const { element } = getNearestIndicator(e, indicators);
+        const beforeId = element.dataset.before;
+
+        // 상태 변경 수행
+        const beforeIdNum = beforeId === '-1' ? null : Number(beforeId);
+        reorderIssues(
+          Number(cardId),
+          targetProject,
+          targetTeam,
+          targetProgress as KanbanProgress,
+          beforeIdNum
+        );
       }
-
-      // 공통: 다른 상태로 이동 - DropIndicator 위치 기반으로 삽입 위치 결정
-      const indicators = getIndicators(targetProgress);
-      const { element } = getNearestIndicator(e, indicators);
-      const beforeId = element.dataset.before;
-
-      // 상태 변경 수행
-      const beforeIdNum = beforeId === '-1' ? null : Number(beforeId);
-      reorderIssues(
-        Number(cardId),
-        targetProject,
-        targetTeam,
-        targetProgress as KanbanProgress,
-        beforeIdNum
-      );
     } catch (error) {
       console.error('드래그 앤 드롭 처리 중 오류:', error);
     }
