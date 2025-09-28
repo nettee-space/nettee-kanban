@@ -8,7 +8,7 @@ import { Divider } from '@/shared/components/ui/divider';
 import { Icon, ICONS } from '@/shared/components/ui/icon';
 import { cn } from '@/shared/lib/utils/cn';
 import { useIssueStore } from '@/store/issueStore';
-import { moveTaskToSubTask } from '@/supabase/api/kanbanTask';
+import { moveTaskToSubTask, validateTaskMove } from '@/supabase/api/kanbanTask';
 
 import { kanbanStyleMap } from '../../../constants/kanban';
 import { IssueData } from '../../../types/issues';
@@ -58,7 +58,8 @@ export function KanbanColumn({
 }: KanbanColumnProps) {
   const { handleDragStart, handleDragEnd, handleDragOver, handleDragLeave } =
     useDragAndDrop();
-  const { updateKanbanTask, togglePin } = useIssueStore();
+  const { updateKanbanTask, togglePin, detachSubTaskFromParent: _detachSubTaskFromParent } =
+    useIssueStore();
 
   const handleDropOnCard = async (
     e: DragEvent<Element>,
@@ -73,15 +74,13 @@ export function KanbanColumn({
 
       // 동일 프로젝트/팀 내에서만 허용
       if (sourceProject !== project || sourceTeam !== team) {
-        console.warn(
-          '다른 프로젝트/팀 태스크는 서브태스크로 만들 수 없습니다.'
-        );
+        alert('다른 프로젝트/팀 태스크는 서브태스크로 만들 수 없습니다.');
         return;
       }
 
       // 자기 자신에게 드롭하는 경우 방지
       if (Number(cardId) === targetTaskId) {
-        console.warn('자기 자신의 서브태스크로 만들 수 없습니다.');
+        alert('자기 자신의 서브태스크로 만들 수 없습니다.');
         return;
       }
 
@@ -89,8 +88,28 @@ export function KanbanColumn({
         `태스크 ${cardId}를 태스크 ${targetTaskId}의 서브태스크로 만들기 시도`
       );
 
-      // API 호출하여 parent_task_id 업데이트
-      console.log('subtask', cardId, targetTaskId);
+      // 유효성 검사 먼저 수행
+      const validation = await validateTaskMove(Number(cardId), targetTaskId);
+
+      if (!validation.canMove) {
+        // 에러 타입에 따른 맞춤형 알림
+        if (validation.errorType === 'HAS_SUBTASKS') {
+          alert(
+            validation.reason ||
+              '서브 태스크가 있는 태스크는 다른 태스크의 서브 태스크로 연결할 수 없습니다.'
+          );
+        } else {
+          alert(validation.reason || '태스크 이동이 불가능합니다.');
+        }
+        return;
+      }
+
+      // 유효성 검사 통과 시 API 호출하여 parent_task_id 업데이트
+      console.log(
+        'subtask validation passed, creating subtask:',
+        cardId,
+        targetTaskId
+      );
       await moveTaskToSubTask(Number(cardId), targetTaskId);
 
       console.log('서브태스크 생성 완료');
@@ -101,6 +120,7 @@ export function KanbanColumn({
       console.log('프론트엔드 상태 업데이트 완료');
     } catch (error) {
       console.error('서브태스크 생성 중 오류:', error);
+      alert('서브태스크 생성 중 오류가 발생했습니다.');
     }
   };
   const [modalItem, setModalItem] = useState<Partial<IssueData> | null>(null);

@@ -6,7 +6,8 @@ import { useIssueStore } from '@/store/issueStore';
 import { KanbanProgress } from '../types/issues';
 
 export const useDragAndDrop = () => {
-  const { reorderIssues } = useIssueStore();
+  const { reorderIssues, detachSubTaskFromParent, getIssueById } =
+    useIssueStore();
   const handleDragStart = (
     e: DragEvent,
     cardId: string,
@@ -15,18 +16,23 @@ export const useDragAndDrop = () => {
     project: string,
     team: string
   ) => {
+    // 현재 태스크가 서브태스크인지 확인
+    const currentTask = getIssueById(Number(cardId));
+    const isSubTask = currentTask?.parent && currentTask.parent !== '';
+
     const dragData = {
       cardId,
       sourceColumnId: columnId,
       cardIndex: cardIndex,
       sourceProject: project,
       sourceTeam: team,
+      isSubTask, // 서브태스크 여부 추가
     };
     e.dataTransfer.setData('application/json', JSON.stringify(dragData));
     e.dataTransfer.effectAllowed = 'move';
   };
 
-  const handleDragEnd = (
+  const handleDragEnd = async (
     e: DragEvent,
     targetProject: string,
     targetTeam: string,
@@ -39,7 +45,8 @@ export const useDragAndDrop = () => {
       if (!dragDataStr) return;
 
       const dragData = JSON.parse(dragDataStr);
-      const { cardId, sourceProject, sourceTeam, sourceColumnId } = dragData;
+      const { cardId, sourceProject, sourceTeam, sourceColumnId, isSubTask } =
+        dragData;
 
       // 동일 프로젝트/팀 내에서만 이동 허용
       if (sourceProject !== targetProject || sourceTeam !== targetTeam) {
@@ -51,6 +58,20 @@ export const useDragAndDrop = () => {
       if (sourceColumnId === targetProgress) {
         console.log('동일 상태 내에서는 순서 변경이 불가능합니다.');
         return;
+      }
+
+      // 서브태스크가 컬럼으로 드래그된 경우 - 서브태스크 분리
+      if (isSubTask) {
+        console.log(`서브태스크 ${cardId}를 메인 태스크로 분리합니다.`);
+
+        try {
+          await detachSubTaskFromParent(Number(cardId));
+          console.log('서브태스크 분리 완료');
+        } catch (error) {
+          console.error('서브태스크 분리 중 오류:', error);
+          alert('서브태스크 분리 중 오류가 발생했습니다.');
+          return;
+        }
       }
 
       // 다른 상태로 이동 - DropIndicator 위치 기반으로 삽입 위치 결정

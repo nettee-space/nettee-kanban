@@ -10,6 +10,7 @@ import { toKoreanDateString } from '@/shared/components/ui/datetime-picker';
 import {
   createKanbanTask,
   deleteKanbanTask,
+  detachSubTask,
   getAllTasks,
   updateKanbanTask,
 } from '@/supabase/api/kanbanTask';
@@ -160,6 +161,7 @@ interface IssueState {
     parentId: number,
     subIssueData: Partial<IssueData>
   ) => Promise<void>;
+  detachSubTaskFromParent: (taskId: number) => Promise<IssueData | null>;
   getSubIssues: (parentId: number) => IssueData[];
   getMainIssues: () => IssueData[];
   // 메타데이터 관리
@@ -631,6 +633,33 @@ export const useIssueStore = create<IssueState>((set, get) => ({
   // 서브이슈 관리
   createSubIssue: (parentId: number, subIssueData: Partial<IssueData>) => {
     return new Promise(() => {});
+  },
+  detachSubTaskFromParent: async (taskId: number) => {
+    try {
+      set({ loading: true });
+
+      const detachedTask = await detachSubTask(taskId);
+
+      if (detachedTask) {
+        const updatedIssue = mapKanbanTaskToIssueData(detachedTask);
+
+        set((state) => ({
+          issues: state.issues.map((issue) =>
+            issue.number === taskId ? updatedIssue : issue
+          ),
+          loading: false,
+        }));
+
+        return updatedIssue;
+      } else {
+        set({ loading: false });
+        return null;
+      }
+    } catch (error) {
+      console.error('서브태스크 분리 실패:', error);
+      set({ loading: false });
+      throw error;
+    }
   },
   getSubIssues: (parentId: number) => [],
   getMainIssues: () => [],

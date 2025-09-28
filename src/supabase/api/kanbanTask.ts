@@ -215,13 +215,13 @@ export const hasSubTasks = async (taskId: number): Promise<boolean> => {
  *
  * @param {number} taskId 이동시키려는 태스크 ID
  * @param {number} newParentId 새로운 상위 태스크 ID
- * @returns {Promise<{canMove: boolean, reason?: string}>} 이동 가능 여부와 사유
+ * @returns {Promise<{canMove: boolean, reason?: string, errorType?: string}>} 이동 가능 여부와 사유, 에러 타입
  * @throws {Error} Supabase에서 데이터를 조회하는 중 발생한 에러
  */
 export const validateTaskMove = async (
   taskId: number,
   newParentId: number
-): Promise<{ canMove: boolean; reason?: string }> => {
+): Promise<{ canMove: boolean; reason?: string; errorType?: string }> => {
   // 1. 이동하려는 태스크가 하위 태스크를 가지고 있는지 확인
   const taskHasChildren = await hasSubTasks(taskId);
 
@@ -229,7 +229,8 @@ export const validateTaskMove = async (
     return {
       canMove: false,
       reason:
-        '하위 태스크를 가진 태스크는 다른 태스크의 하위로 이동할 수 없습니다.',
+        '서브 태스크가 있는 태스크는 다른 태스크의 서브 태스크로 연결할 수 없습니다.',
+      errorType: 'HAS_SUBTASKS',
     };
   }
 
@@ -241,6 +242,7 @@ export const validateTaskMove = async (
       canMove: false,
       reason:
         '순환 참조가 발생합니다. 해당 태스크를 상위로 설정할 수 없습니다.',
+      errorType: 'CIRCULAR_REFERENCE',
     };
   }
 
@@ -255,6 +257,7 @@ export const validateTaskMove = async (
     return {
       canMove: false,
       reason: '상위 태스크가 존재하지 않습니다.',
+      errorType: 'PARENT_NOT_FOUND',
     };
   }
 
@@ -304,6 +307,29 @@ const getAllDescendants = async (taskId: number): Promise<KanbanTask[]> => {
   }
 
   return allDescendants;
+};
+
+/**
+ * 서브 태스크를 상위 태스크에서 분리하여 독립적인 메인 태스크로 변경합니다.
+ *
+ * @param {number} taskId 분리할 서브 태스크 ID
+ * @returns {Promise<KanbanTask | null>} 업데이트된 태스크 또는 null
+ * @throws {Error} Supabase에서 데이터를 수정하는 중 발생한 에러
+ */
+export const detachSubTask = async (
+  taskId: number
+): Promise<KanbanTask | null> => {
+  if (isGuest) return null;
+
+  const { data, error } = await supabase
+    .from('kanban_task')
+    .update({ parent_task_id: null })
+    .eq('id', taskId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
 };
 
 /**
