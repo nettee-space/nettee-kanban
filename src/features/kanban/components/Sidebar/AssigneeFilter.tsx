@@ -7,39 +7,40 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/shared/components/ui/accordion';
-import { Checkbox } from '@/shared/components/ui/checkbox';
-
 import { Button } from '@/shared/components/ui/button';
+import { Checkbox } from '@/shared/components/ui/checkbox';
 import { Icon, ICONS } from '@/shared/components/ui/icon';
 import { cn } from '@/shared/lib/utils/cn';
-import { netteeMembers } from '../../constants/nettee';
+import { useUserStore } from '@/store/userStore';
+
 import { useFilterStore } from '../../store/filterStore';
 
 export function AssigneeFilter() {
-  const { 
-    selectedTeams, 
-    selectedAssignees, 
-    toggleTeam, 
+  const {
+    selectedTeams,
+    selectedAssignees,
+    toggleTeam,
     toggleAssignee,
     teamList,
-    loadTeamList 
+    loadTeamList,
   } = useFilterStore();
+
+  const { users, loadUsers } = useUserStore();
 
   useEffect(() => {
     loadTeamList();
-  }, [loadTeamList]);
+    if (users.length === 0) {
+      loadUsers();
+    }
+  }, [loadTeamList, users.length, loadUsers]);
 
   const teamObjects = teamList.map(([id, name]) => ({ id, name }));
 
-  const memberList = Object.values(netteeMembers).flat();
-
+  // 동적 사용자 데이터 사용
   const teamMembers = selectedTeams.includes('All')
-    ? memberList
+    ? users
     : selectedTeams.flatMap((teamId) => {
-        const teamName = teamList.find(([id]) => id === teamId)?.[1];
-        return teamName
-          ? netteeMembers[teamName as keyof typeof netteeMembers]
-          : [];
+        return users.filter((user) => user.team_id.includes(parseInt(teamId)));
       });
 
   return (
@@ -51,18 +52,18 @@ export function AssigneeFilter() {
         className="w-full"
       >
         <AccordionItem value="assignee" className="border-none">
-          <AccordionTrigger className="text-black-8 py-0 text-xl font-semibold hover:no-underline">
+          <AccordionTrigger className="text-black-8 py-0 text-sm font-semibold hover:no-underline">
             <p>담당자</p>
           </AccordionTrigger>
 
-          <AccordionContent className="overflow-visible pt-[10px] pb-0 text-2xl">
+          <AccordionContent className="overflow-visible pt-[10px] pb-0 text-sm">
             <div className="flex flex-wrap gap-[8px] pt-[8px] pb-[16px]">
               {teamObjects.map((team) => (
                 <Button
                   key={`${team.id}_button`}
                   type="button"
                   variant={'default'}
-                  className={`flex h-[28px] w-[60px] cursor-pointer items-center justify-center text-xl ${
+                  className={`flex h-[28px] w-[60px] cursor-pointer items-center justify-center text-xs ${
                     selectedTeams.includes(team.id)
                       ? 'bg-primary-12 text-white'
                       : 'text-black-7 bg-[#ededed]'
@@ -75,11 +76,13 @@ export function AssigneeFilter() {
             </div>
 
             <ul className="h-[306px] w-full space-y-1 overflow-y-scroll">
-              {teamMembers.map((member) => {
-                const checked = selectedAssignees.includes(member);
+              {teamMembers.map((user) => {
+                const checked = selectedAssignees.includes(user.login);
                 return (
-                  // TODO: 추수 같은 팀이면서 동명이인인 멤버가 있을 경우 어떻게 이름을 저장할 것인지 논의 필요
-                  <li key={`${member}_assignee`} className="px-[8px] py-[4px]">
+                  <li
+                    key={`${user.login}_assignee`}
+                    className="px-[8px] py-[4px]"
+                  >
                     <label
                       className={cn(
                         'flex cursor-pointer items-center gap-[8px] font-medium',
@@ -87,19 +90,39 @@ export function AssigneeFilter() {
                       )}
                     >
                       <Checkbox
-                        id={`checkbox-${member}`}
+                        id={`checkbox-${user.login}`}
                         checked={checked}
                         onCheckedChange={() => {
-                          console.log('toggleAssignee 호출값: ', member);
-                          toggleAssignee(member);
+                          console.log('toggleAssignee 호출값: ', user.login);
+                          toggleAssignee(user.login);
                         }}
                       />
                       <Icon
                         src={ICONS.worker24}
                         size={24}
-                        alt={`${member}-github-profile`}
+                        alt={`${user.real_name}-github-profile`}
                       />
-                      {member}
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">
+                          {user.real_name}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          @{user.login}
+                        </span>
+                        {user.team_id.length > 1 && (
+                          <span className="text-xs text-blue-600">
+                            다중 팀:{' '}
+                            {user.team_id
+                              .map(
+                                (id) =>
+                                  teamList.find(
+                                    ([tId]) => tId === id.toString()
+                                  )?.[1] || id
+                              )
+                              .join(', ')}
+                          </span>
+                        )}
+                      </div>
                     </label>
                   </li>
                 );

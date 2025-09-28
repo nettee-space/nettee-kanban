@@ -1,6 +1,7 @@
 // components/Sidebar/index.tsx
 import { Button } from '@/shared/components/ui/button';
 import { Icon, ICONS } from '@/shared/components/ui/icon';
+
 import { AssigneeFilter } from './AssigneeFilter';
 import { LabelFilter } from './LabelFilter';
 import { ProjectFilter } from './ProjectFilter';
@@ -25,7 +26,7 @@ export function Sidebar({ onReset }: SidebarProps) {
     <aside className="flex min-h-screen w-[240px] flex-col bg-[#f8f8f8] p-[20px]">
       {/* 헤더 섹션 */}
       <div className="flex flex-col gap-[40px]">
-        <h1 className="text-center text-[24px] font-bold">Nettee's KanBan</h1>
+        <h1 className="text-center text-2xl font-bold">Nettee's KanBan</h1>
         <input
           className="rounded-[4px] border border-[#dbdbdb] bg-white px-[12px] py-[6px]"
           type="search"
@@ -35,11 +36,11 @@ export function Sidebar({ onReset }: SidebarProps) {
 
       {/* 필터 제어 섹션 */}
       <div className="flex items-center justify-between pt-[20px] pb-[10px]">
-        <p className="text-black-8 text-xl font-semibold">필터</p>
+        <p className="text-black-8 text-sm font-semibold">필터</p>
         <Button
           variant="ghost"
           type="reset"
-          className="text-black-7 flex cursor-pointer items-center text-xl font-semibold duration-200 hover:text-[#ff5555]"
+          className="text-black-7 hover:text-black-8 flex cursor-pointer items-center text-sm font-semibold duration-200"
           onClick={onReset}
         >
           <Icon src={ICONS.refresh24} size={24} alt="reset" />

@@ -1,7 +1,7 @@
 // KanbanLayout.tsx
 import { useAccordion } from '../../hooks/useAccordion';
-import { useFilters } from '../../hooks/useFilters';
 import { useKanbanData } from '../../hooks/useKanbanData';
+import { useFilterStore } from '../../store/filterStore';
 import { KanbanProgress } from '../../types/issues';
 import { ProjectKanban } from '../KanbanBoard/ProjectKanban';
 import { Sidebar } from '../Sidebar';
@@ -18,7 +18,14 @@ export function NetteeKanbanLayout() {
     setGroupedIssues,
     addIssue,
   } = useKanbanData();
-  const { filters, updateProjectFilter, updateTeamFilter } = useFilters();
+  const {
+    selectedProjects,
+    selectedTeams,
+    selectedAssignees,
+    toggleProject,
+    toggleTeam,
+    resetAllFilters,
+  } = useFilterStore();
   const { accordionMap, toggleAccordion, resetAccordion } = useAccordion();
 
   // PIN 기능
@@ -100,23 +107,33 @@ export function NetteeKanbanLayout() {
   };
 
   const handleReset = () => {
-    updateProjectFilter('All');
-    updateTeamFilter('All');
+    resetAllFilters();
     resetAccordion();
   };
 
-  // TODO: data loading from supabase
-  // if (loading) {
-  //   return <div>Loading...</div>;
-  // }
+  // Supabase 데이터 로딩 중 표시
+  if (loading) {
+    return (
+      <main className="flex h-full w-full items-center justify-center">
+        <div className="text-center">
+          <div className="mb-4 text-lg">Supabase 데이터 로딩 중...</div>
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="flex h-full w-full">
       <Sidebar
-        filters={filters}
+        filters={{
+          selectedProject: selectedProjects,
+          selectedTeam: selectedTeams,
+          selectedAssignee: selectedAssignees,
+        }}
         accordionMap={accordionMap}
-        onProjectToggle={updateProjectFilter}
-        onTeamToggle={updateTeamFilter}
+        onProjectToggle={toggleProject}
+        onTeamToggle={toggleTeam}
         onAccordionToggle={toggleAccordion}
         onReset={handleReset}
       />

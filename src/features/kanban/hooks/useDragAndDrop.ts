@@ -6,27 +6,35 @@ import { useIssueStore } from '@/store/issueStore';
 import { KanbanProgress } from '../types/issues';
 
 export const useDragAndDrop = () => {
-  const { reorderIssues } = useIssueStore();
+  const { reorderIssues, detachSubTaskFromParent, getIssueById } =
+    useIssueStore();
   const handleDragStart = (
     e: DragEvent,
     cardId: string,
     columnId: string,
     cardIndex: string,
     project: string,
-    team: string
+    team: string,
+    dragType: 'MAIN_CARD' | 'SUB_TASK' = 'MAIN_CARD',
+    parentId?: string
   ) => {
+    // 드래그 타입에 따른 데이터 구성
     const dragData = {
       cardId,
       sourceColumnId: columnId,
       cardIndex: cardIndex,
       sourceProject: project,
       sourceTeam: team,
+      dragType, // 드래그 타입 추가
+      parentId, // 서브태스크인 경우 부모 ID
+      // 하위 호환성을 위해 기존 isSubTask도 유지
+      isSubTask: dragType === 'SUB_TASK',
     };
     e.dataTransfer.setData('application/json', JSON.stringify(dragData));
     e.dataTransfer.effectAllowed = 'move';
   };
 
-  const handleDragEnd = (
+  const handleDragEnd = async (
     e: DragEvent,
     targetProject: string,
     targetTeam: string,
@@ -39,7 +47,15 @@ export const useDragAndDrop = () => {
       if (!dragDataStr) return;
 
       const dragData = JSON.parse(dragDataStr);
-      const { cardId, sourceProject, sourceTeam, sourceColumnId } = dragData;
+      const {
+        cardId,
+        sourceProject,
+        sourceTeam,
+        sourceColumnId,
+        dragType = 'MAIN_CARD', // 기본값 설정
+        parentId,
+        isSubTask // 하위 호환성
+      } = dragData;
 
       // 동일 프로젝트/팀 내에서만 이동 허용
       if (sourceProject !== targetProject || sourceTeam !== targetTeam) {
@@ -47,25 +63,50 @@ export const useDragAndDrop = () => {
         return;
       }
 
-      // DropIndicator 위치 기반으로 삽입 위치 결정
-      const indicators = getIndicators(targetProgress);
-      const { element } = getNearestIndicator(e, indicators);
-      const beforeId = element.dataset.before;
-
-      // 동일 위치에 드롭하는 경우 아무 작업 안함
-      if (sourceColumnId === targetProgress && beforeId === cardId) {
+      // 동일 컬럼 내에서의 순서 변경은 허용하지 않음
+      if (sourceColumnId === targetProgress) {
+        console.log('동일 상태 내에서는 순서 변경이 불가능합니다.');
         return;
       }
 
-      // 순서 변경 또는 상태 이동 수행
-      const beforeIdNum = beforeId === '-1' ? null : Number(beforeId);
-      reorderIssues(
-        Number(cardId),
-        targetProject,
-        targetTeam,
-        targetProgress as KanbanProgress,
-        beforeIdNum
-      );
+      console.log(`드래그 타입: ${dragType}, 카드 ID: ${cardId}, 타겟 진행상태: ${targetProgress}`);
+
+      // 드래그 타입별 분기 처리
+      if (dragType === 'SUB_TASK' || isSubTask) {
+        // 서브태스크 드래그 처리
+        console.log(`서브태스크 ${cardId}를 처리합니다. 부모 ID: ${parentId}`);
+
+        try {
+          // 1. 현재 부모에서 서브태스크 분리하고 동시에 새 상태로 변경
+          await detachSubTaskFromParent(Number(cardId), targetProgress);
+          console.log(`서브태스크를 부모에서 분리하고 ${targetProgress} 상태로 변경 완료`);
+
+          // 서브태스크는 detachSubTaskFromParent에서 모든 처리가 완료되므로 여기서 종료
+          return;
+        } catch (error) {
+          console.error('서브태스크 분리 중 오류:', error);
+          alert('서브태스크 분리 중 오류가 발생했습니다.');
+          return;
+        }
+      } else if (dragType === 'MAIN_CARD') {
+        // 메인 카드 드래그 처리
+        console.log(`메인 카드 ${cardId}의 상태를 ${targetProgress}로 변경합니다.`);
+
+        // 메인 카드는 기존 로직대로 reorderIssues 사용
+        const indicators = getIndicators(targetProgress);
+        const { element } = getNearestIndicator(e, indicators);
+        const beforeId = element.dataset.before;
+
+        // 상태 변경 수행
+        const beforeIdNum = beforeId === '-1' ? null : Number(beforeId);
+        reorderIssues(
+          Number(cardId),
+          targetProject,
+          targetTeam,
+          targetProgress as KanbanProgress,
+          beforeIdNum
+        );
+      }
     } catch (error) {
       console.error('드래그 앤 드롭 처리 중 오류:', error);
     }

@@ -2,6 +2,7 @@ import * as AccordionPrimitive from '@radix-ui/react-accordion';
 import * as React from 'react';
 
 import { cn } from '@/shared/lib/utils/cn';
+
 import { Icon, ICONS } from './icon';
 
 function Accordion({

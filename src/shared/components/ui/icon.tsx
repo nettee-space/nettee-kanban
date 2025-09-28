@@ -44,7 +44,8 @@ export const ICONS = {
   clear24: '/icons/24/24_clear.svg',
   complete24: '/icons/24/24_complete.svg',
   down24: '/icons/24/24_down.svg',
-  error24: '/icons/24/24_error.svg',
+  errorRed24: '/icons/24/24_error.svg',
+  errorGray24: '/icons/24/error.svg',
   github24: '/icons/24/24_github.svg',
   meatball24: '/icons/24/24_meatball.svg',
   pin24: '/icons/24/24_pin.svg',
@@ -56,6 +57,8 @@ export const ICONS = {
   unpin24: '/icons/24/24_unpin.svg',
   up24: '/icons/24/24_up.svg',
   worker24: '/icons/24/24_worker.svg',
+  close24: 'icons/24/24_close.svg',
+  delete24: 'icons/24/24_delete.svg',
 
   // 32px 아이콘들
   addDefault32: '/icons/32/32_add_default.svg',
